@@ -1,6 +1,7 @@
 package squidpony.squidmath;
 
 
+import squidpony.annotation.GwtIncompatible;
 import squidpony.squidgrid.Direction;
 
 import java.io.Serializable;
@@ -285,6 +286,7 @@ public class AStarSearch implements Serializable{
     }
 
 	@Override
+	@GwtIncompatible // because of the call to getProperty (since gwt 2.8)
 	public String toString() {
 		final StringBuilder result = new StringBuilder(width * height);
 		int maxLen = 0;
