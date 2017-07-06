@@ -84,6 +84,8 @@ public class RectangleRoomFinder {
 			int steps = 0;
 			while (!assigneds[c.x][c.y] && isFloor(dungeon[current.x][current.y])) {
 				current = current.translate(Direction.UP_RIGHT);
+				if (!isInDungeon(current))
+					continue nextBottomLeft;
 				steps++;
 			}
 			if (steps < minimumDiagonal)

@@ -164,6 +164,9 @@ public class LinesPanel<T extends Color> extends Actor {
 	public void addFirst(IColoredString<T> ics) {
 		if (ics == null)
 			throw new NullPointerException("Adding a null entry is forbidden");
+		if (maxLines == 0)
+			/* Empty panel. Can happen when screen size is absurdly small. */
+			return;
 		if (atMax())
 			content.removeLast();
 		content.addFirst(ics);
@@ -178,6 +181,9 @@ public class LinesPanel<T extends Color> extends Actor {
 	public void addLast(IColoredString<T> ics) {
 		if (ics == null)
 			throw new NullPointerException("Adding a null entry is forbidden");
+		if (maxLines == 0)
+			/* Empty panel. Can happen when screen size is absurdly small. */
+			return;
 		if (atMax())
 			content.removeLast();
 		content.addLast(ics);

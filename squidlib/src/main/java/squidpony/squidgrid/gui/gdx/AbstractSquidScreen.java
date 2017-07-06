@@ -197,7 +197,6 @@ public abstract class AbstractSquidScreen<T extends Color> extends ScreenAdapter
 	 */
 	protected final SquidPanel buildScreenWideSquidPanel() {
 		final SquidPanel result = buildSquidPanel(sizeManager.wCells, sizeManager.hCells);
-		/* TODO smelC Draw margins ? */
 		result.setPosition(sizeManager.leftMargin, sizeManager.botMargin);
 		return result;
 	}

@@ -183,6 +183,18 @@ public class AStarSearch implements Serializable{
         return deq;
     }
 
+	public void changeCellWeight(int x, int y, double d) {
+		map[x][y] = d;
+	}
+
+	public int getWidth() {
+		return width;
+	}
+
+	public int getHeight() {
+		return height;
+	}
+
     /**
      * Finds the g value (start to current) for the given location.
      *
@@ -274,8 +286,6 @@ public class AStarSearch implements Serializable{
 
 	@Override
 	public String toString() {
-		final int width = map.length;
-		final int height = width == 0 ? 0 : map[0].length;
 		final StringBuilder result = new StringBuilder(width * height);
 		int maxLen = 0;
 		/*
