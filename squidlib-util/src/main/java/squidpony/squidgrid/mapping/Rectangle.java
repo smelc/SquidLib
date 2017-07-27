@@ -409,6 +409,11 @@ public interface Rectangle extends Zone {
 		}
 
 		@Override
+		public Zone translate(int x, int y) {
+			return new Impl(bottomLeft.translate(x, y), width, height);
+		}
+
+		@Override
 		public Iterator<Coord> iterator() {
 			/* Do not rely on getAll(), to avoid allocating the list */
 			return Rectangle.Utils.cells(this);
