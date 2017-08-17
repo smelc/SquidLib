@@ -414,6 +414,19 @@ public interface Rectangle extends Zone {
 		}
 
 		@Override
+		public Collection<Coord> getExternalBorder() {
+			final List<Coord> result = new ArrayList<Coord>((width + height) * 2);
+			for (Direction dir : Direction.CARDINALS)
+				Utils.getBorder(this, dir, result);
+			return result;
+		}
+
+		@Override
+		public Rectangle extend() {
+			return new Rectangle.Impl(bottomLeft.translate(Direction.DOWN_LEFT), width + 2, height + 2);
+		}
+
+		@Override
 		public Iterator<Coord> iterator() {
 			/* Do not rely on getAll(), to avoid allocating the list */
 			return Rectangle.Utils.cells(this);
