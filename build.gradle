@@ -42,7 +42,6 @@ def gdxVersion = System.getenv("gdxVersion") ?: "1.9.6" // As in pom.xml
 // In this section you declare the dependencies for your production and test code
 dependencies {
 	compile "com.badlogicgames.gdx:gdx:$gdxVersion"
-	compile project(":RegExodus")
 
 	testCompile "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
 	testCompile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"

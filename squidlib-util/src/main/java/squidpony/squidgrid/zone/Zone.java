@@ -1,5 +1,6 @@
 package squidpony.squidgrid.zone;
 
+import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.mapping.DungeonUtility;
 import squidpony.squidmath.Coord;
 
@@ -126,6 +127,12 @@ public interface Zone extends Serializable, Iterable<Coord> {
 
 	/** @return {@code this} shifted by {@code (x,y)} */
 	Zone translate(int x, int y);
+
+	/**
+	 * @return Cells in {@code this} that are adjacent to a cell not in
+	 *         {@code this}
+	 */
+	List<Coord> getInternalBorder();
 
 	/** @return Cells adjacent to {@code this} that aren't in {@code this} */
 	Collection<Coord> getExternalBorder();
@@ -267,6 +274,28 @@ public interface Zone extends Serializable, Iterable<Coord> {
 				shifted.add(Coord.get(c.x + x, c.y + y));
 			}
 			return new ListZone(shifted);
+		}
+
+		@Override
+		/* Convenience implementation, feel free to override. */
+		public List<Coord> getInternalBorder() {
+			final int sz = size();
+			if (sz <= 1)
+				return getAll();
+			final List<Coord> result = new ArrayList<Coord>(sz);
+			final List<Coord> all = getAll();
+			assert sz == all.size();
+			nextCell: for (int i = 0; i < sz; i++) {
+				final Coord c = all.get(i);
+				for (Direction out : Direction.OUTWARDS) {
+					final Coord neighbor = c.translate(out);
+					if (!contains(neighbor)) {
+						result.add(c);
+						continue nextCell;
+					}
+				}
+			}
+			return result;
 		}
 
 		@Override

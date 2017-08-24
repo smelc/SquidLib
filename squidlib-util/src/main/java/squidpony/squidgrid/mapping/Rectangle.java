@@ -414,6 +414,54 @@ public interface Rectangle extends Zone {
 		}
 
 		@Override
+		public List<Coord> getInternalBorder() {
+			if (width <= 1 || height <= 1)
+				return getAll();
+			final int expectedSize = width + (height - 1) + (width - 1) + (height - 2);
+			final List<Coord> result = new ArrayList<Coord>(expectedSize);
+			Coord current = Utils.getCorner(this, Direction.DOWN_LEFT);
+			for (int i = 0; i < width; i++) {
+				assert !result.contains(current);
+				result.add(current);
+				current = current.translate(Direction.RIGHT);
+			}
+			current = Utils.getCorner(this, Direction.UP_LEFT);
+			for (int i = 0; i < width; i++) {
+				assert !result.contains(current);
+				result.add(current);
+				current = current.translate(Direction.RIGHT);
+			}
+			current = Utils.getCorner(this, Direction.DOWN_LEFT);
+			/* Stopping at height - 1 to avoid doublons */
+			for (int i = 0; i < height - 1; i++) {
+				if (0 < i) {
+					/*
+					 * To avoid doublons (with the very first value of 'current'
+					 * atop this method.
+					 */
+					assert !result.contains(current);
+					result.add(current);
+				}
+				current = current.translate(Direction.UP);
+			}
+			current = Utils.getCorner(this, Direction.DOWN_RIGHT);
+			/* Stopping at height - 1 to avoid doublons */
+			for (int i = 0; i < height - 1; i++) {
+				if (0 < i) {
+					/*
+					 * To avoid doublons (with the very first value of 'current'
+					 * atop this method.
+					 */
+					assert !result.contains(current);
+					result.add(current);
+				}
+				current = current.translate(Direction.UP);
+			}
+			assert result.size() == expectedSize;
+			return result;
+		}
+
+		@Override
 		public Collection<Coord> getExternalBorder() {
 			final List<Coord> result = new ArrayList<Coord>((width + height) * 2);
 			for (Direction dir : Direction.CARDINALS)
