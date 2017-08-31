@@ -37,6 +37,16 @@ import java.util.List;
  * planned), GreasedRegion is mutable for performance reasons, and may need copies
  * to be created if you want to keep around older GreasedRegions.
  * </p>
+ * 
+ * <p>
+ * The correct method to implement a {@link Zone} efficiently is to first try
+ * implementing the interface directly, looking at each method and thinking
+ * whether you can do something smart for it. Once you've inspected all methods,
+ * then extend {@link Zone.Skeleton} (instead of Object in the first place) so
+ * that it'll fill for you the methods for which you cannot provide a smart
+ * implementation.
+ * </p>
+ * 
  * @author smelC
  * @see squidpony.squidmath.CoordPacker
  * @see squidpony.squidmath.GreasedRegion
@@ -158,6 +168,22 @@ public interface Zone extends Serializable, Iterable<Coord> {
 		private transient int height = -2;
 
 		private static final long serialVersionUID = 4436698111716212256L;
+
+		@Override
+		/* Convenience implementation, feel free to override */
+		public int size() {
+			return getAll().size();
+		}
+
+		@Override
+		/* Convenience implementation, feel free to override */
+		public boolean contains(int x, int y) {
+			for (Coord in : this) {
+				if (in.x == x && in.y == y)
+					return true;
+			}
+			return false;
+		}
 
 		@Override
 		/* Convenience implementation, feel free to override */

@@ -189,13 +189,12 @@ public interface Rectangle extends Zone {
 
 		/**
 		 * @param r
-         * @param diagonal A diagonal direction.
-		 * @return The coord at the corner identified by {@code diagonal} in
+		 * @param dir
+		 * @return The coord at the corner identified by {@code dir} in
 		 *         {@code r}.
 		 */
-		public static Coord getCorner(Rectangle r, Direction diagonal) {
-			assert diagonal.isDiagonal();
-			switch (diagonal) {
+		public static Coord getCorner(Rectangle r, Direction dir) {
+			switch (dir) {
 			case DOWN_LEFT:
 				return r.getBottomLeft();
 			case DOWN_RIGHT:
@@ -206,15 +205,17 @@ public interface Rectangle extends Zone {
 			case UP_RIGHT:
 				/* -y because in SquidLib higher y is smaller */
 				return r.getBottomLeft().translate(r.getWidth() - 1, -(r.getHeight() - 1));
+			case NONE:
+				return r.getCenter();
 			case DOWN:
 			case LEFT:
-			case NONE:
 			case RIGHT:
 			case UP:
-				throw new IllegalStateException(
-						"Expected a diagonal direction in Rectangle.Utils::getCorner. Received: " + diagonal);
+				final Coord c1 = getCorner(r, dir.clockwise());
+				final Coord c2 = getCorner(r, dir.counterClockwise());
+				return Coord.get((c1.x + c2.x) / 2, (c1.y + c2.y) / 2);
 			}
-			throw new IllegalStateException("Unmatched direction in Rectangle.Utils::getCorner: " + diagonal);
+			throw new IllegalStateException("Unmatched direction in Rectangle.Utils::getCorner: " + dir);
 		}
 
 		/**
