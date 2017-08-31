@@ -5,6 +5,7 @@ target/
 *.iml
 .idea/
 .settings/
+.gradle/
 
 *.jar
 
