@@ -97,13 +97,15 @@ public interface Zone extends Serializable, Iterable<Coord> {
 
 	/**
 	 * @return The distance between the leftmost cell and the rightmost cell, or
-	 *         anything negative if {@code this} zone is empty.
+	 *         anything negative if {@code this} zone is empty; may be 0 if all cells
+	 *         are in one vertical line.
 	 */
 	int getWidth();
 
 	/**
 	 * @return The distance between the topmost cell and the lowest cell, or
-	 *         anything negative if {@code this} zone is empty.
+	 *         anything negative if {@code this} zone is empty; may be 0 if all cells
+	 *         are in one horizontal line.
 	 */
 	int getHeight();
 
@@ -114,14 +116,16 @@ public interface Zone extends Serializable, Iterable<Coord> {
 	double getDiagonal();
 
 	/**
-	 * @param smallestOrBiggest
+	 * @param smallestOrBiggest if true, finds the smallest x-coordinate value;
+	 *                          if false, finds the biggest.
 	 * @return The x-coordinate of the Coord within {@code this} that has the
 	 *         smallest (or biggest) x-coordinate. Or -1 if the zone is empty.
 	 */
 	int x(boolean smallestOrBiggest);
 
 	/**
-	 * @param smallestOrBiggest
+	 * @param smallestOrBiggest if true, finds the smallest y-coordinate value;
+	 *                          if false, finds the biggest.
 	 * @return The y-coordinate of the Coord within {@code this} that has the
 	 *         smallest (or biggest) y-coordinate. Or -1 if the zone is empty.
 	 */
@@ -132,7 +136,7 @@ public interface Zone extends Serializable, Iterable<Coord> {
      */
     List<Coord> getAll();
 
-	/** @return {@code this} shifted by {@code c} */
+	/** @return {@code this} shifted by {@code (c.x,c.y)} */
 	Zone translate(Coord c);
 
 	/** @return {@code this} shifted by {@code (x,y)} */
@@ -149,8 +153,8 @@ public interface Zone extends Serializable, Iterable<Coord> {
 
 	/**
 	 * @return A variant of {@code this} where cells adjacent to {@code this}
-	 *         have been added (i.e. it's {@code this} plus
-	 *         {@link #getExternalBorder()}).
+	 *         (orthogonally or diagonally) have been added (i.e. it's {@code this}
+	 *         plus {@link #getExternalBorder()}).
 	 */
 	Zone extend();
 
