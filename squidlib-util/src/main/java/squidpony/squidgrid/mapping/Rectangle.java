@@ -363,7 +363,7 @@ public interface Rectangle extends Zone {
 
 		@Override
 		public String toString() {
-			return "Room at " + bottomLeft + ", width:" + width + ", height:" + height;
+			return "Rectangle at " + bottomLeft + ", width:" + width + ", height:" + height;
 		}
 
 		// Implementation of Zone:
@@ -464,9 +464,11 @@ public interface Rectangle extends Zone {
 
 		@Override
 		public Collection<Coord> getExternalBorder() {
-			final List<Coord> result = new ArrayList<Coord>((width + height) * 2);
+			final Rectangle extension = extend();
+			final List<Coord> result = new ArrayList<Coord>(
+					(extension.getWidth() + extension.getHeight()) * 2);
 			for (Direction dir : Direction.CARDINALS)
-				Utils.getBorder(this, dir, result);
+				Utils.getBorder(extension, dir, result);
 			return result;
 		}
 

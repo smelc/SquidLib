@@ -309,29 +309,24 @@ public interface Zone extends Serializable, Iterable<Coord> {
 		@Override
 		/* Convenience implementation, feel free to override. */
 		public List<Coord> getInternalBorder() {
-			final int sz = size();
-			if (sz <= 1)
-				return getAll();
-			final List<Coord> result = new ArrayList<Coord>(sz);
-			final List<Coord> all = getAll();
-			assert sz == all.size();
-			nextCell: for (int i = 0; i < sz; i++) {
-				final Coord c = all.get(i);
-				for (Direction out : Direction.OUTWARDS) {
-					final Coord neighbor = c.translate(out);
-					if (!contains(neighbor)) {
-						result.add(c);
-						continue nextCell;
-					}
-				}
-			}
-			return result;
+			return size() <= 1 ? getAll() : DungeonUtility.border(getAll(), null);
 		}
 
 		@Override
 		/* Convenience implementation, feel free to override. */
 		public Collection<Coord> getExternalBorder() {
-			return DungeonUtility.border(getAll(), null);
+			final List<Coord> result = new ArrayList<Coord>(size());
+			final List<Coord> internalBorder = getInternalBorder();
+			final int ibsz = internalBorder.size();
+			for (int i = 0; i < ibsz; i++) {
+				final Coord b = internalBorder.get(i);
+				for (Direction dir : Direction.OUTWARDS) {
+					final Coord borderNeighbor = b.translate(dir);
+					if (!contains(borderNeighbor))
+						result.add(borderNeighbor);
+				}
+			}
+			return result;
 		}
 
 		@Override

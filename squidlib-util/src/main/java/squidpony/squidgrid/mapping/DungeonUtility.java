@@ -1537,6 +1537,7 @@ public class DungeonUtility {
         return result;
     }
 
+    // FIXME CH Use Grids instead
     private static boolean hasANeighborNotIn(Coord c, Collection<Coord> others) {
         for (Direction dir : Direction.OUTWARDS) {
             if (!others.contains(c.translate(dir)))
