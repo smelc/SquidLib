@@ -1,7 +1,9 @@
 apply plugin: 'java'
-apply plugin: 'eclipse'
-// note from smelC: I did not add a plugin for 'idea' as I don't use it. 
-// Please add it if you do.
+// note from smelC: starting with Eclipse Neon, you should not use
+// gradle's Eclipse plugin. Instead you should use Eclipse's buildship project:
+// https://projects.eclipse.org/projects/tools.buildship
+// buildship takes care of generating .classpath and .project files according to your build.gradle files
+// (right-click on a project > Gradle > Refresh Gradle Project).
 
 // In this section you declare where to find the dependencies of your project
 repositories {
@@ -29,6 +31,9 @@ sourceSets {
 // a project depending on SquidLib (like: your game) to define
 // 'gdxVersion' itself, and yet be able to build SquidLib standalone too.
 def gdxVersion = System.getenv("gdxVersion") ?: "1.9.6" // As in pom.xml
+
+targetCompatibility = '1.7'
+// sourceCompatibility = '1.6'  // For android. Commented because not honored (diamonds) :-(
 
 dependencies {
 	compile "com.badlogicgames.gdx:gdx:$gdxVersion"
