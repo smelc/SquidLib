@@ -32,8 +32,8 @@ sourceSets {
 // 'gdxVersion' itself, and yet be able to build SquidLib standalone too.
 def gdxVersion = System.getenv("gdxVersion") ?: "1.9.6" // As in pom.xml
 
-targetCompatibility = '1.7'
-// sourceCompatibility = '1.6'  // For android. Commented because not honored (diamonds) :-(
+project.targetCompatibility = '1.7'
+// project.sourceCompatibility = '1.6'  // For android. Commented because not honored (diamonds) :-(
 
 dependencies {
 	compile "com.badlogicgames.gdx:gdx:$gdxVersion"
