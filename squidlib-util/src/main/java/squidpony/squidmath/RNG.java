@@ -556,14 +556,24 @@ public class RNG implements Serializable {
 	 *            can be any non-primitive type.
 	 * @return elements after shuffling it in-place
 	 */
-	public <T> T[] shuffleInPlace(T[] elements) {
+	public <T> void shuffleInPlace(T[] elements) {
 		for (int i = elements.length - 1; i > 0; i--) {
 			int r = nextInt(i + 1);
 			T t = elements[r];
 			elements[r] = elements[i];
 			elements[i] = t;
 		}
-		return elements;
+	}
+
+	public <T> void shuffleInPlace(List<T> elements) {
+		final int sz = elements.size();
+		for (int i = sz - 1; i > 0; i--) {
+			int r = nextInt(i + 1);
+			final T atr = elements.get(r);
+			final T ati = elements.get(i);
+			elements.set(r, ati);
+			elements.set(i, atr);
+		}
 	}
 
 	/**

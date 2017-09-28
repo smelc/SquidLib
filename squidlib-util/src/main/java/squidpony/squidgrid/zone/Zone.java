@@ -297,12 +297,13 @@ public interface Zone extends Serializable, Iterable<Coord> {
 		/* Convenience implementation, feel free to override. */
 		public Zone translate(int x, int y) {
 			final List<Coord> initial = getAll();
-			final List<Coord> shifted = new ArrayList<Coord>(initial);
 			final int sz = initial.size();
+			final List<Coord> shifted = new ArrayList<Coord>(sz);
 			for (int i = 0; i < sz; i++) {
 				final Coord c = initial.get(i);
 				shifted.add(Coord.get(c.x + x, c.y + y));
 			}
+			assert shifted.size() == sz;
 			return new ListZone(shifted);
 		}
 
