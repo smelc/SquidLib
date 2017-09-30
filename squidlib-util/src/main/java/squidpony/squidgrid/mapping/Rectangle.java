@@ -152,6 +152,7 @@ public interface Rectangle extends Zone {
 			final Iterator<Coord> it = cells(r);
 			while (it.hasNext())
 				result.add(it.next());
+			assert result.size() == size(r);
 			return result;
 		}
 
@@ -406,7 +407,9 @@ public interface Rectangle extends Zone {
 
 		@Override
 		public List<Coord> getAll() {
-			return Utils.cellsList(this);
+			final List<Coord> result = Utils.cellsList(this);
+			assert result.size() == size();
+			return result;
 		}
 
 		@Override
