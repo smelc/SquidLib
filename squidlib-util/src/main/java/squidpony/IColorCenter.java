@@ -35,6 +35,7 @@ import squidpony.squidmath.RNG;
  * @param <T>
  *            The concrete type of colors
  */
+// FIXME CH Move me to com.hgames.rhogue.color
 public interface IColorCenter<T> {
 
 	/**
