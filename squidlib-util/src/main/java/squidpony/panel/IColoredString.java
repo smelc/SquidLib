@@ -1,8 +1,11 @@
 package squidpony.panel;
 
-import squidpony.annotation.Beta;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.NoSuchElementException;
 
 /**
  * A {@link String} divided in chunks of different colors. Use the
@@ -13,7 +16,6 @@ import java.util.*;
  * @param <T>
  *            The type of colors;
  */
-@Beta
 public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 
 	/**
@@ -93,7 +95,7 @@ public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 	 * 
 	 * @param color
 	 */
-	void setColor(/*@Nullable*/ T color);
+	void setColor(/* @Nullable */ T color);
 
 	/**
 	 * Deletes all content after index {@code len} (if any).
@@ -111,16 +113,16 @@ public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 	 * @param width
 	 *            A positive integer
 	 * @return {@code this} split in pieces that would fit in a display with
-	 *         {@code width} columns (if all words in {@code this} are smaller
-	 *         or equal in length to {@code width}, otherwise wrapping will fail
-	 *         for these words).
+	 *         {@code width} columns (if all words in {@code this} are smaller or
+	 *         equal in length to {@code width}, otherwise wrapping will fail for
+	 *         these words).
 	 */
 	List<IColoredString<T>> wrap(int width);
 
 	/**
-	 * This method does NOT guarantee that the result's length is {@code width}.
-	 * It is impossible to do correct justifying if {@code this}'s length is
-	 * greater than {@code width} or if {@code this} has no space character.
+	 * This method does NOT guarantee that the result's length is {@code width}. It
+	 * is impossible to do correct justifying if {@code this}'s length is greater
+	 * than {@code width} or if {@code this} has no space character.
 	 * 
 	 * @param width
 	 * @return A variant of {@code this} where spaces have been introduced
@@ -168,9 +170,12 @@ public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 	String present();
 
 	/**
-	 * Given some way of converting from a T value to an in-line markup tag, returns a string representation of
-	 * this IColoredString with in-line markup representing colors.
-	 * @param markup an IMarkup implementation
+	 * Given some way of converting from a T value to an in-line markup tag, returns
+	 * a string representation of this IColoredString with in-line markup
+	 * representing colors.
+	 * 
+	 * @param markup
+	 *            an IMarkup implementation
 	 * @return a String with markup inserted inside.
 	 */
 	String presentWithMarkup(IMarkup<T> markup);
@@ -209,8 +214,7 @@ public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 		}
 
 		/**
-		 * A static constructor, to avoid having to write {@code <T>} in the
-		 * caller.
+		 * A static constructor, to avoid having to write {@code <T>} in the caller.
 		 * 
 		 * @return {@code new Impl(s, t)}.
 		 */
@@ -229,8 +233,7 @@ public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 		}
 
 		/**
-		 * A static constructor, to avoid having to write {@code <T>} in the
-		 * caller.
+		 * A static constructor, to avoid having to write {@code <T>} in the caller.
 		 * 
 		 * @return {@code new Impl(s, t)}.
 		 */
@@ -246,9 +249,8 @@ public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 
 		/**
 		 * @param one
-		 * @param two 
-		 * @return Whether {@code one} represents the same content as
-		 *         {@code two}.
+		 * @param two
+		 * @return Whether {@code one} represents the same content as {@code two}.
 		 */
 		/*
 		 * Method could be smarter, i.e. return true more often, by doing some
@@ -423,8 +425,8 @@ public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 			final List<IColoredString<T>> result = new ArrayList<>();
 			if (isEmpty()) {
 				/*
-				 * Catch this case early on, as empty lines are eaten below (see
-				 * code after the while). Checking emptyness is cheap anyway.
+				 * Catch this case early on, as empty lines are eaten below (see code after the
+				 * while). Checking emptyness is cheap anyway.
 				 */
 				result.add(this);
 				return result;
@@ -441,8 +443,7 @@ public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 				for (int i = 0; i < split.length; i++) {
 					if (i == split.length - 1 && bucket.endsWith(" "))
 						/*
-						 * Do not loose trailing space that got eaten by
-						 * 'bucket.split'.
+						 * Do not loose trailing space that got eaten by 'bucket.split'.
 						 */
 						split[i] = split[i] + " ";
 					final String chunk = split[i];
@@ -451,9 +452,8 @@ public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 					if (curlen + chunklen + (addLeadingSpace ? 1 : 0) <= width) {
 						if (addLeadingSpace) {
 							/*
-							 * Do not forget space on which chunk got split. If
-							 * the space is offscreen, it's harmless, hence not
-							 * checking it.
+							 * Do not forget space on which chunk got split. If the space is offscreen, it's
+							 * harmless, hence not checking it.
 							 */
 							current.append(' ', null);
 							curlen++;
@@ -479,8 +479,7 @@ public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 							curlen = chunklen;
 						} else {
 							/*
-							 * This word is too long. Adding it and preparing a
-							 * new line immediately.
+							 * This word is too long. Adding it and preparing a new line immediately.
 							 */
 							/* Add */
 							result.add(new Impl<>(chunk, color));
@@ -503,17 +502,15 @@ public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 
 		@Override
 		/*
-		 * smelC: not the cutest result (we should add spaces both from the left
-		 * and the right, instead of just from the left), but better than
-		 * nothing.
+		 * smelC: not the cutest result (we should add spaces both from the left and the
+		 * right, instead of just from the left), but better than nothing.
 		 */
 		public IColoredString<T> justify(int width) {
 			int length = length();
 
 			if (width <= length)
 				/*
-				 * If width==length, we're good. If width<length, we cannot
-				 * adjust
+				 * If width==length, we're good. If width<length, we cannot adjust
 				 */
 				return this;
 
@@ -582,8 +579,8 @@ public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 				int localRest = localDiff - (nb * localNbSpaces);
 				if (localRest == 0 && 0 < totalRest) {
 					/*
-					 * Take one for the group. This avoids flushing all spaces
-					 * needed in the 'last hope' cases below.
+					 * Take one for the group. This avoids flushing all spaces needed in the 'last
+					 * hope' cases below.
 					 */
 					localRest = 1;
 				}
@@ -710,10 +707,14 @@ public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 				result.append(fragment.text);
 			return result.toString();
 		}
+
 		/**
-		 * Given some way of converting from a T value to an in-line markup tag, returns a string representation of
-		 * this IColoredString with in-line markup representing colors.
-		 * @param markup an IMarkup implementation
+		 * Given some way of converting from a T value to an in-line markup tag, returns
+		 * a string representation of this IColoredString with in-line markup
+		 * representing colors.
+		 * 
+		 * @param markup
+		 *            an IMarkup implementation
 		 * @return a String with markup inserted inside.
 		 */
 		@Override
@@ -721,13 +722,12 @@ public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 			final StringBuilder result = new StringBuilder();
 			boolean open = false;
 			for (Bucket<T> fragment : fragments) {
-				if(fragment.color != null) {
+				if (fragment.color != null) {
 					if (open)
 						result.append(markup.closeMarkup());
 					result.append(markup.getMarkup(fragment.color));
 					open = true;
-				}
-				else {
+				} else {
 					if (open)
 						result.append(markup.closeMarkup());
 					open = false;

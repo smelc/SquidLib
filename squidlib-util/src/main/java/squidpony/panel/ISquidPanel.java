@@ -1,7 +1,6 @@
 package squidpony.panel;
 
 import squidpony.IColorCenter;
-import squidpony.annotation.Beta;
 
 /**
  * The abstraction of {@code SquidPanel}s, to abstract from the UI
@@ -12,11 +11,7 @@ import squidpony.annotation.Beta;
  * 
  * @param <T>
  *            The type of colors
- * 
- * @see ICombinedPanel The combination of two panels, one for the background,
- *      one for the foreground; a frequent use case in roguelikes.
  */
-@Beta
 public interface ISquidPanel<T> {
 
 	/**
@@ -43,8 +38,8 @@ public interface ISquidPanel<T> {
 	 * offset.
 	 *
 	 * Does not word wrap. Characters that are not renderable (due to being at
-	 * negative offsets or offsets greater than the grid size) will not be shown
-	 * but will not cause any malfunctions.
+	 * negative offsets or offsets greater than the grid size) will not be shown but
+	 * will not cause any malfunctions.
 	 *
 	 * @param xOffset
 	 *            the x coordinate of the first character
@@ -62,8 +57,8 @@ public interface ISquidPanel<T> {
 	 * offset, using the colors that {@code cs} provides.
 	 *
 	 * Does not word wrap. Characters that are not renderable (due to being at
-	 * negative offsets or offsets greater than the grid size) will not be shown
-	 * but will not cause any malfunctions.
+	 * negative offsets or offsets greater than the grid size) will not be shown but
+	 * will not cause any malfunctions.
 	 *
 	 * @param xOffset
 	 *            the x coordinate of the first character
@@ -134,9 +129,8 @@ public interface ISquidPanel<T> {
 
 	/**
 	 * @return The default foreground color (if none was set with
-	 *         {@link #setDefaultForeground(Object)}), or the last color set
-	 *         with {@link #setDefaultForeground(Object)}. Cannot be
-	 *         {@code null}.
+	 *         {@link #setDefaultForeground(Object)}), or the last color set with
+	 *         {@link #setDefaultForeground(Object)}. Cannot be {@code null}.
 	 */
 	T getDefaultForegroundColor();
 
@@ -149,11 +143,10 @@ public interface ISquidPanel<T> {
 	ISquidPanel<T> setColorCenter(IColorCenter<T> icc);
 
 	/**
-	 * @return The panel doing the real job, i.e. an instance of
-	 *         {@code SquidPanel}. The type of colors is unspecified, as some
-	 *         clients have forwarding instances of this class that hides that
-	 *         the type of color of the backer differs from the type of color in
-	 *         {@code this}.
+	 * @return The panel doing the real job, i.e. an instance of {@code SquidPanel}.
+	 *         The type of colors is unspecified, as some clients have forwarding
+	 *         instances of this class that hides that the type of color of the
+	 *         backer differs from the type of color in {@code this}.
 	 * 
 	 *         <p>
 	 *         Can be {@code this} itself.
