@@ -44,16 +44,16 @@ public abstract class SquidPanelBuilder extends IPanelBuilder.Skeleton {
 	 * @param largestFont
 	 *            The largest font size available.
 	 * @param fontOffset
-	 *            This offset is added to the cell size when computing the font
-	 *            size for a given cell size.
+	 *            This offset is added to the cell size when computing the font size
+	 *            for a given cell size.
 	 * @param icc
 	 *            The color center to give to
-	 *            {@link SquidPanel#setColorCenter(IColorCenter)}, or
-	 *            {@code null} not to call this method.
+	 *            {@link SquidPanel#setColorCenter(IColorCenter)}, or {@code null}
+	 *            not to call this method.
 	 * @param assetManager
 	 */
-	public SquidPanelBuilder(int smallestFont, int largestFont, int fontOffset,
-			/* @Nullable */IColorCenter<Color> icc, /* @Nullable */ AssetManager assetManager) {
+	public SquidPanelBuilder(int smallestFont, int largestFont, int fontOffset, /* @Nullable */IColorCenter<Color> icc,
+			/* @Nullable */ AssetManager assetManager) {
 		this.icc = icc;
 		this.assetManager = assetManager;
 
@@ -78,7 +78,7 @@ public abstract class SquidPanelBuilder extends IPanelBuilder.Skeleton {
 
 	@Override
 	public SquidPanel buildByCells(int hCells, int vCells, int cellWidth, int cellHeight,
-			/*@Nullable*/ TextCellFactory tcf_) {
+			/* @Nullable */ TextCellFactory tcf_) {
 		final TextCellFactory tcf;
 		final boolean freshTCF;
 		if (tcf_ != null && tcf_.width() == cellWidth && tcf_.height() == cellHeight) {
@@ -105,8 +105,6 @@ public abstract class SquidPanelBuilder extends IPanelBuilder.Skeleton {
 				tcf.width(cellWidth).height(cellHeight);
 			}
 			final SquidPanel result = new SquidPanel(hCells, vCells, tcf);
-			if (icc != null)
-				result.setColorCenter(icc);
 			if (defaultForegroundColor != null)
 				result.setDefaultForeground(defaultForegroundColor);
 			return result;

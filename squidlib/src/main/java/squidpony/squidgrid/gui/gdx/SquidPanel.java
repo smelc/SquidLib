@@ -37,7 +37,6 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 	public float DEFAULT_ANIMATION_DURATION = 0.12F;
 	protected int animationCount = 0;
 	protected Color defaultForeground = Color.WHITE;
-	protected IColorCenter<Color> scc;
 	protected final int cellWidth, cellHeight;
 	protected int gridWidth, gridHeight, gridOffsetX = 0, gridOffsetY = 0;
 	protected final String[][] contents;
@@ -108,7 +107,7 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 	 *            the factory to use for cell rendering
 	 */
 	public SquidPanel(int gridWidth, int gridHeight, TextCellFactory factory) {
-		this(gridWidth, gridHeight, factory, DefaultResources.getSCC());
+		this(gridWidth, gridHeight, factory, 0f, 0f);
 	}
 
 	/**
@@ -130,37 +129,9 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 	 *            The color center to use. Can be {@code null}, but then must be set
 	 *            later on with {@link #setColorCenter(IColorCenter)}.
 	 */
-	public SquidPanel(int gridWidth, int gridHeight, TextCellFactory factory, IColorCenter<Color> center) {
-		this(gridWidth, gridHeight, factory, center, 0f, 0f);
-	}
-
-	/**
-	 * Builds a panel with the given grid size and all other parameters determined
-	 * by the factory. Even if sprite images are being used, a TextCellFactory is
-	 * still needed to perform sizing and other utility functions.
-	 *
-	 * If the TextCellFactory has not yet been initialized, then it will be sized at
-	 * 12x12 px per cell. If it is null then a default one will be created and
-	 * initialized.
-	 *
-	 * @param gridWidth
-	 *            the number of cells horizontally
-	 * @param gridHeight
-	 *            the number of cells vertically
-	 * @param factory
-	 *            the factory to use for cell rendering
-	 * @param center
-	 *            The color center to use. Can be {@code null}, but then must be set
-	 *            later on with {@link #setColorCenter(IColorCenter)}.
-	 */
-	public SquidPanel(int gridWidth, int gridHeight, TextCellFactory factory, IColorCenter<Color> center, float xOffset,
-			float yOffset) {
+	public SquidPanel(int gridWidth, int gridHeight, TextCellFactory factory, float xOffset, float yOffset) {
 		this.gridWidth = gridWidth;
 		this.gridHeight = gridHeight;
-		if (center == null)
-			scc = DefaultResources.getSCC();
-		else
-			scc = center;
 
 		if (factory == null) {
 			textFactory = new TextCellFactory();
@@ -176,7 +147,7 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 		contents = new String[gridWidth][gridHeight];
 		colors = new Color[gridWidth][gridHeight];
 		for (int i = 0; i < gridWidth; i++) {
-			Arrays.fill(colors[i], scc.filter(Color.CLEAR));
+			Arrays.fill(colors[i], Color.CLEAR);
 		}
 
 		int w = gridWidth * cellWidth;
@@ -295,7 +266,7 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 		for (IColoredString.Bucket<? extends Color> fragment : cs) {
 			final String s = fragment.getText();
 			final Color color = fragment.getColor();
-			put(x, yOffset, s, color == null ? getDefaultForegroundColor() : scc.filter(color));
+			put(x, yOffset, s, color == null ? getDefaultForegroundColor() : color);
 			x += s.length();
 		}
 	}
@@ -429,7 +400,7 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 			return;// skip if out of bounds
 		}
 		contents[x][y] = String.valueOf(c);
-		colors[x][y] = scc.filter(color);
+		colors[x][y] = color; // scc.filter(color);
 	}
 
 	@Override
@@ -484,7 +455,7 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 		int inc = onlyRenderEven ? 2 : 1;
 		for (int x = gridOffsetX; x < gridWidth; x += inc) {
 			for (int y = gridOffsetY; y < gridHeight; y += inc) {
-				tmp = scc.filter(colors[x][y]);
+				tmp = colors[x][y];
 				textFactory.draw(batch, contents[x][y], tmp, xOffset + /*- getX() + 1f * */ x * cellWidth,
 						yOffset + /*- getY() + 1f * */ (gridHeight - y) * cellHeight + 1f);
 			}
@@ -558,7 +529,7 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 		if (name == null || name.isEmpty())
 			return null;
 		else {
-			final Actor a = textFactory.makeActor(name, scc.filter(color));
+			final Actor a = textFactory.makeActor(name, color);
 			a.setName(name);
 			a.setPosition(adjustX(x, doubleWidth) - getX() * 2, adjustY(y) - getY() * 2);
 			addActor(a);
@@ -983,7 +954,7 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 		duration = clampDuration(duration);
 		ae.animating = true;
 		animationCount++;
-		Color ac = scc.filter(a.getColor());
+		Color ac = a.getColor();
 		a.addAction(Actions.sequence(Actions.color(color, duration * 0.3f), Actions.color(ac, duration * 0.7f),
 				Actions.delay(duration, Actions.run(new Runnable() {
 					@Override
@@ -1043,7 +1014,7 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 		duration = clampDuration(duration);
 		animationCount++;
 
-		Color ac = scc.filter(a.getColor());
+		Color ac = a.getColor();
 
 		final int nbActions = 3 + (0 < delay ? 1 : 0) + (postRunnable == null ? 0 : 1);
 		final Action[] sequence = new Action[nbActions];
@@ -1105,7 +1076,7 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 			return;
 		duration = clampDuration(duration);
 		animationCount++;
-		final Color c = scc.filter(color);
+		final Color c = color;
 		a.addAction(Actions.sequence(Actions.color(c, duration), Actions.run(new Runnable() {
 			@Override
 			public void run() {
@@ -1133,33 +1104,6 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 
 	@Override
 	public ISquidPanel<Color> getBacker() {
-		return this;
-	}
-
-	/**
-	 * @return The current color center. Never {@code null}.
-	 */
-	public IColorCenter<Color> getColorCenter() {
-		return scc;
-	}
-
-	/**
-	 * Use this method if you use your own {@link IColorCenter} and want this panel
-	 * not to allocate its own colors (or fill {@link DefaultResources#getSCC()} but
-	 * instead to the provided center.
-	 * 
-	 * @param scc
-	 *            The color center to use. Should not be {@code null}.
-	 * @return {@code this}
-	 * @throws NullPointerException
-	 *             If {@code scc} is {@code null}.
-	 */
-	@Override
-	public SquidPanel setColorCenter(IColorCenter<Color> scc) {
-		if (scc == null)
-			/* Better fail now than later */
-			throw new NullPointerException("The color center should not be null in " + getClass().getSimpleName());
-		this.scc = scc;
 		return this;
 	}
 

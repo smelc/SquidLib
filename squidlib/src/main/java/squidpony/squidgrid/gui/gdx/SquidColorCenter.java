@@ -12,7 +12,7 @@ import squidpony.squidmath.StatefulRNG;
 /**
  * A concrete implementation of {@link IColorCenter} for libgdx's
  * {@link com.badlogic.gdx.graphics.Color}. Supports filtering any colors that
- * this creates using a {@link Filter}, such as one from {@link Filters}.
+ * this creates using a {@code Filter}, such as one from {@link Filters}.
  *
  * @author smelC
  * @author Tommy Ettinger

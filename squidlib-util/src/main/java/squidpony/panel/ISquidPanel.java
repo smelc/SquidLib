@@ -1,7 +1,5 @@
 package squidpony.panel;
 
-import squidpony.IColorCenter;
-
 /**
  * The abstraction of {@code SquidPanel}s, to abstract from the UI
  * implementation (i.e. whether it's awt or libgdx doesn't matter here).
@@ -133,14 +131,6 @@ public interface ISquidPanel<T> {
 	 *         {@link #setDefaultForeground(Object)}. Cannot be {@code null}.
 	 */
 	T getDefaultForegroundColor();
-
-	/**
-	 * Method to change the backing {@link IColorCenter}.
-	 * 
-	 * @param icc
-	 * @return {@code this}
-	 */
-	ISquidPanel<T> setColorCenter(IColorCenter<T> icc);
 
 	/**
 	 * @return The panel doing the real job, i.e. an instance of {@code SquidPanel}.
