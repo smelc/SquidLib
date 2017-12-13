@@ -16,6 +16,10 @@ import java.util.NoSuchElementException;
  * @param <T>
  *            The type of colors;
  */
+/*
+ * I cannot be moved to com.hgames.rhogue until I depend on IFilter, which I
+ * didn't wrote
+ */
 public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 
 	/**
@@ -188,7 +192,7 @@ public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 	 * @param <T>
 	 *            The type of colors
 	 */
-	class Impl<T> implements IColoredString<T> {
+	public final class Impl<T> implements IColoredString<T> {
 
 		protected final LinkedList<Bucket<T>> fragments;
 
@@ -786,7 +790,7 @@ public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 	 * @param <T>
 	 *            The type of colors;
 	 */
-	class Bucket<T> {
+	final class Bucket<T> {
 
 		protected final String text;
 		protected final/* @Nullable */T color;
@@ -797,16 +801,16 @@ public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 		}
 
 		/**
-		 * @param text
-		 * @return An instance whose text is {@code this.text + text}. Color is
+		 * @param toadd
+		 * @return An instance whose text is {@code this.text + toadd}. Color is
 		 *         unchanged.
 		 */
-		public Bucket<T> append(String text) {
-			if (text == null || text.isEmpty())
+		public Bucket<T> append(String toadd) {
+			if (toadd == null || toadd.isEmpty())
 				/* Let's save an allocation */
 				return this;
 			else
-				return new Bucket<>(this.text + text, color);
+				return new Bucket<T>(this.text + toadd, color);
 		}
 
 		public Bucket<T> setLength(int l) {
@@ -814,7 +818,7 @@ public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 			if (here <= l)
 				return this;
 			else
-				return new Bucket<>(text.substring(0, l), color);
+				return new Bucket<T>(text.substring(0, l), color);
 		}
 
 		public Bucket<T> setColor(T t) {
