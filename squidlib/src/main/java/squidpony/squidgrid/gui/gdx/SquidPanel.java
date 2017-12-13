@@ -14,7 +14,6 @@ import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.utils.Align;
 
 import squidpony.IColorCenter;
-import squidpony.panel.IColoredString;
 import squidpony.panel.ISquidPanel;
 import squidpony.squidgrid.Direction;
 import squidpony.squidmath.Coord;
@@ -44,7 +43,7 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 	protected Color lightingColor = Color.WHITE;
 	protected final TextCellFactory textFactory;
 	protected float xOffset, yOffset;
-	public final OrderedSet<AnimatedEntity> animatedEntities;
+	private final OrderedSet<AnimatedEntity> animatedEntities;
 	/**
 	 * For thin-wall maps, where only cells where x and y are both even numbers have
 	 * backgrounds displayed. Should be false when using this SquidPanel for
@@ -58,7 +57,7 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 	 * {@link #setTextSize(int, int)} to double the previously-given cell width and
 	 * height.
 	 */
-	public boolean onlyRenderEven = false;
+	private boolean onlyRenderEven = false;
 
 	/**
 	 * Creates a bare-bones panel with all default values for text rendering.
@@ -181,10 +180,6 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 			put(0, 0, chars, foregrounds);
 	}
 
-	public void put(char[][] chars, int[][] indices, ArrayList<Color> palette) {
-		put(0, 0, chars, indices, palette);
-	}
-
 	public void put(int xOffset, int yOffset, char[][] chars) {
 		put(xOffset, yOffset, chars, defaultForeground);
 	}
@@ -194,16 +189,6 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 			for (int y = yOffset; y < yOffset + chars[0].length; y++) {
 				if (x >= 0 && y >= 0 && x < gridWidth && y < gridHeight) {// check for valid input
 					put(x, y, chars[x - xOffset][y - yOffset], foregrounds[x - xOffset][y - yOffset]);
-				}
-			}
-		}
-	}
-
-	public void put(int xOffset, int yOffset, char[][] chars, int[][] indices, ArrayList<Color> palette) {
-		for (int x = xOffset; x < xOffset + chars.length; x++) {
-			for (int y = yOffset; y < yOffset + chars[0].length; y++) {
-				if (x >= 0 && y >= 0 && x < gridWidth && y < gridHeight) {// check for valid input
-					put(x, y, chars[x - xOffset][y - yOffset], palette.get(indices[x - xOffset][y - yOffset]));
 				}
 			}
 		}
@@ -240,101 +225,6 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 	}
 
 	/**
-	 * Puts the given string horizontally with the first character at the given
-	 * offset.
-	 *
-	 * Does not word wrap. Characters that are not renderable (due to being at
-	 * negative offsets or offsets greater than the grid size) will not be shown but
-	 * will not cause any malfunctions.
-	 *
-	 * Will use the default color for this component to draw the characters.
-	 *
-	 * @param xOffset
-	 *            the x coordinate of the first character
-	 * @param yOffset
-	 *            the y coordinate of the first character
-	 * @param string
-	 *            the characters to be displayed
-	 */
-	public void put(int xOffset, int yOffset, String string) {
-		put(xOffset, yOffset, string, defaultForeground);
-	}
-
-	@Override
-	public void put(int xOffset, int yOffset, IColoredString<? extends Color> cs) {
-		int x = xOffset;
-		for (IColoredString.Bucket<? extends Color> fragment : cs) {
-			final String s = fragment.getText();
-			final Color color = fragment.getColor();
-			put(x, yOffset, s, color == null ? getDefaultForegroundColor() : color);
-			x += s.length();
-		}
-	}
-
-	@Override
-	public void put(int xOffset, int yOffset, String string, Color foreground) {
-		if (string.length() == 1) {
-			put(xOffset, yOffset, string.charAt(0), foreground);
-		} else {
-			char[][] temp = new char[string.length()][1];
-			for (int i = 0; i < string.length(); i++) {
-				temp[i][0] = string.charAt(i);
-			}
-			put(xOffset, yOffset, temp, foreground);
-		}
-	}
-
-	/**
-	 * Puts the given string horizontally or optionally vertically, with the first
-	 * character at the given offset.
-	 *
-	 * Does not word wrap. Characters that are not renderable (due to being at
-	 * negative offsets or offsets greater than the grid size) will not be shown but
-	 * will not cause any malfunctions.
-	 *
-	 * Will use the default color for this component to draw the characters.
-	 *
-	 * @param xOffset
-	 *            the x coordinate of the first character
-	 * @param yOffset
-	 *            the y coordinate of the first character
-	 * @param string
-	 *            the characters to be displayed
-	 * @param vertical
-	 *            true if the text should be written vertically, from top to bottom
-	 */
-	public void placeVerticalString(int xOffset, int yOffset, String string, boolean vertical) {
-		put(xOffset, yOffset, string, defaultForeground, vertical);
-	}
-
-	/**
-	 * Puts the given string horizontally or optionally vertically, with the first
-	 * character at the given offset.
-	 *
-	 * Does not word wrap. Characters that are not renderable (due to being at
-	 * negative offsets or offsets greater than the grid size) will not be shown but
-	 * will not cause any malfunctions.
-	 *
-	 * @param xOffset
-	 *            the x coordinate of the first character
-	 * @param yOffset
-	 *            the y coordinate of the first character
-	 * @param string
-	 *            the characters to be displayed
-	 * @param foreground
-	 *            the color to draw the characters
-	 * @param vertical
-	 *            true if the text should be written vertically, from top to bottom
-	 */
-	public void put(int xOffset, int yOffset, String string, Color foreground, boolean vertical) {
-		if (vertical) {
-			put(xOffset, yOffset, new char[][] { string.toCharArray() }, foreground);
-		} else {
-			put(xOffset, yOffset, string, foreground);
-		}
-	}
-
-	/**
 	 * Erases the entire panel, leaving only a transparent space.
 	 */
 	public void erase() {
@@ -361,29 +251,6 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 	@Override
 	public void put(int x, int y, char c) {
 		put(x, y, c, defaultForeground);
-	}
-
-	/**
-	 * Takes a unicode codepoint for input.
-	 *
-	 * @param x
-	 * @param y
-	 * @param code
-	 */
-	public void put(int x, int y, int code) {
-		put(x, y, code, defaultForeground);
-	}
-
-	public void put(int x, int y, int c, Color color) {
-		put(x, y, String.valueOf(Character.toChars(c)), color);
-	}
-
-	public void put(int x, int y, int index, ArrayList<Color> palette) {
-		put(x, y, palette.get(index));
-	}
-
-	public void put(int x, int y, char c, int index, ArrayList<Color> palette) {
-		put(x, y, c, palette.get(index));
 	}
 
 	/**
@@ -1102,17 +969,6 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 		animatedEntities.remove(ae);
 	}
 
-	@Override
-	public ISquidPanel<Color> getBacker() {
-		return this;
-	}
-
-	public String getAt(int x, int y) {
-		if (contents[x][y] == null)
-			return "";
-		return contents[x][y];
-	}
-
 	public Color getColorAt(int x, int y) {
 		return colors[x][y];
 	}
@@ -1246,54 +1102,5 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 	public void setOffsets(float x, float y) {
 		xOffset = x;
 		yOffset = y;
-	}
-
-	/**
-	 * Gets the status of a boolean flag used for rendering thin maps; it will
-	 * almost always be false unless it was set to true with
-	 * {@link #setOnlyRenderEven(boolean)}. <br>
-	 * This is meant for thin-wall maps, where only cells where x and y are both
-	 * even numbers have backgrounds displayed. Should be false when using this
-	 * SquidPanel for anything that isn't specifically a background of a map that
-	 * uses the thin-wall method from ThinDungeonGenerator or something similar.
-	 * Even the foregrounds of thin-wall maps should have this false, since
-	 * ThinDungeonGenerator (in conjunction with DungeonUtility's hashesToLines()
-	 * method) makes thin lines for walls that should be displayed as between the
-	 * boundaries of other cells. The overlap behavior needed for some "thin enough"
-	 * cells to be displayed between the cells can be accomplished by using
-	 * {@link #setTextSize(int, int)} to double the previously-given cell width and
-	 * height.
-	 *
-	 * @return the current status of the onlyRenderEven flag, which defaults to
-	 *         false
-	 */
-	public boolean getOnlyRenderEven() {
-		return onlyRenderEven;
-	}
-
-	/**
-	 * Sets the status of a boolean flag used for rendering thin maps; it should
-	 * almost always be the default, which is false, unless you are using a
-	 * thin-wall map, and then this should be true only if this SquidPanel is used
-	 * for the background layer. <br>
-	 * This is meant for thin-wall maps, where only cells where x and y are both
-	 * even numbers have backgrounds displayed. Should be false when using this
-	 * SquidPanel for anything that isn't specifically a background of a map that
-	 * uses the thin-wall method from ThinDungeonGenerator or something similar.
-	 * Even the foregrounds of thin-wall maps should have this false, since
-	 * ThinDungeonGenerator (in conjunction with DungeonUtility's hashesToLines()
-	 * method) makes thin lines for walls that should be displayed as between the
-	 * boundaries of other cells. The overlap behavior needed for some "thin enough"
-	 * cells to be displayed between the cells can be accomplished by using
-	 * {@link #setTextSize(int, int)} to double the previously-given cell width and
-	 * height.
-	 *
-	 * @param onlyRenderEven
-	 *            generally, should only be true if this SquidPanel is a background
-	 *            of a thin map
-	 */
-
-	public void setOnlyRenderEven(boolean onlyRenderEven) {
-		this.onlyRenderEven = onlyRenderEven;
 	}
 }
