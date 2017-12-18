@@ -11,7 +11,6 @@ import java.util.Set;
 import squidpony.GwtCompatibility;
 import squidpony.annotation.GwtIncompatible;
 import squidpony.squidgrid.Direction;
-import squidpony.squidgrid.FOVCache;
 import squidpony.squidgrid.LOS;
 import squidpony.squidgrid.Radius;
 import squidpony.squidmath.Coord;
@@ -1792,9 +1791,6 @@ public class DijkstraMap implements Serializable {
 	 *            the length of the path to calculate
 	 * @param preferredRange
 	 *            the distance this unit will try to keep from a target
-	 * @param cache
-	 *            a FOVCache that has completed its calculations, and will be used
-	 *            for LOS work, may be null
 	 * @param impassable
 	 *            a Set of impassable Coord positions that may change (not constant
 	 *            like walls); can be null
@@ -1810,9 +1806,9 @@ public class DijkstraMap implements Serializable {
 	 *         creature as it goes toward a target. Copy of path.
 	 */
 	@GwtIncompatible
-	public ArrayList<Coord> findAttackPath(int moveLength, int preferredRange, FOVCache cache, Set<Coord> impassable,
-			Set<Coord> onlyPassable, Coord start, Coord... targets) {
-		return findAttackPath(moveLength, preferredRange, preferredRange, cache, impassable, onlyPassable, start,
+	public ArrayList<Coord> findAttackPath(int moveLength, int preferredRange, Set<Coord> impassable, Set<Coord> onlyPassable,
+			Coord start, Coord... targets) {
+		return findAttackPath(moveLength, preferredRange, preferredRange, impassable, onlyPassable, start,
 				targets);
 	}
 
@@ -1859,7 +1855,7 @@ public class DijkstraMap implements Serializable {
 	 *         creature as it goes toward a target. Copy of path.
 	 */
 	@GwtIncompatible
-	public ArrayList<Coord> findAttackPath(int moveLength, int minPreferredRange, int maxPreferredRange, FOVCache cache,
+	public ArrayList<Coord> findAttackPath(int moveLength, int minPreferredRange, int maxPreferredRange, 
 			Set<Coord> impassable, Set<Coord> onlyPassable, Coord start, Coord... targets) {
 		if (!initialized)
 			return null;
@@ -1898,11 +1894,9 @@ public class DijkstraMap implements Serializable {
 				if (gradientMap[x][y] >= minPreferredRange && gradientMap[x][y] <= maxPreferredRange) {
 
 					for (Coord goal : targets) {
-						if (cache == null || cache.queryLOS(x, y, goal.x, goal.y)) {
-							setGoal(x, y);
-							gradientMap[x][y] = 0;
-							continue CELL;
-						}
+						setGoal(x, y);
+						gradientMap[x][y] = 0;
+						continue CELL;
 					}
 					gradientMap[x][y] = FLOOR;
 				} else
@@ -1948,7 +1942,7 @@ public class DijkstraMap implements Serializable {
 
 					closed.put(currentPos.encode(), WALL);
 					impassable2.add(currentPos);
-					return findAttackPath(moveLength, minPreferredRange, maxPreferredRange, cache, impassable2,
+					return findAttackPath(moveLength, minPreferredRange, maxPreferredRange, impassable2,
 							onlyPassable, start, targets);
 				}
 				break;
