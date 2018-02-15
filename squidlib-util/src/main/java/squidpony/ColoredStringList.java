@@ -1,10 +1,10 @@
 package squidpony;
 
-import squidpony.panel.IColoredString;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+
+import squidpony.panel.IColoredString;
 
 /**
  * An helper class for code that deals with lists of {@link IColoredString}s. It
@@ -68,6 +68,16 @@ public class ColoredStringList<T> extends ArrayList<IColoredString<T>> {
 	 * Appends colored text to {@code this}.
 	 * 
 	 * @param text the text to append
+	 */
+	public void addText(String text, T c) {
+		addColoredText(text, c);
+	}
+
+	/**
+	 * Appends colored text to {@code this}.
+	 * 
+	 * @param text
+	 *            the text to append
 	 */
 	public void addColoredText(String text, T c) {
 		if (isEmpty())
