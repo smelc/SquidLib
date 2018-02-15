@@ -11,7 +11,6 @@ import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.Direction;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.CoordPacker;
-import squidpony.squidmath.LightRNG;
 import squidpony.squidmath.PerlinNoise;
 import squidpony.squidmath.RNG;
 import squidpony.squidmath.StatefulRNG;
@@ -32,10 +31,6 @@ public class DungeonUtility {
 
 	public DungeonUtility(StatefulRNG rng) {
 		this.rng = rng;
-	}
-
-	public DungeonUtility(RNG rng) {
-		this.rng = new StatefulRNG(new LightRNG(rng.nextLong()));
 	}
 
 	/**

@@ -1,13 +1,11 @@
 package squidpony.squidgrid;
 
-import squidpony.squidmath.Coord;
-import squidpony.squidmath.Coord3D;
-import squidpony.squidmath.OrderedSet;
-import squidpony.squidmath.RNG;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import squidpony.squidmath.Coord;
+import squidpony.squidmath.OrderedSet;
 
 /**
  * Basic radius strategy implementations likely to be used for roguelikes.
@@ -122,73 +120,6 @@ public enum Radius {
         return radius(dx, dy, 0);
     }
 
-    public Coord onUnitShape(double distance, RNG rng) {
-        int x = 0, y = 0;
-        switch (this) {
-            case SQUARE:
-            case CUBE:
-                x = rng.between((int) -distance, (int) distance + 1);
-                y = rng.between((int) -distance, (int) distance + 1);
-                break;
-            case DIAMOND:
-            case OCTAHEDRON:
-                x = rng.between((int) -distance, (int) distance + 1);
-                y = rng.between((int) -distance, (int) distance + 1);
-                if (radius(x, y) > distance) {
-                    if (x > 0) {
-                        if (y > 0) {
-                            x = (int) (distance - x);
-                            y = (int) (distance - y);
-                        } else {
-                            x = (int) (distance - x);
-                            y = (int) (-distance - y);
-                        }
-                    } else {
-                        if (y > 0) {
-                            x = (int) (-distance - x);
-                            y = (int) (distance - y);
-                        } else {
-                            x = (int) (-distance - x);
-                            y = (int) (-distance - y);
-                        }
-                    }
-                }
-                break;
-            case CIRCLE:
-            case SPHERE:
-                double radius = distance * Math.sqrt(rng.between(0.0, 1.0));
-                double theta = rng.between(0, PI2);
-                x = (int) Math.round(Math.cos(theta) * radius);
-                y = (int) Math.round(Math.sin(theta) * radius);
-        }
-
-        return Coord.get(x, y);
-    }
-
-    public Coord3D onUnitShape3D(double distance, RNG rng) {
-        int x = 0, y = 0, z = 0;
-        switch (this) {
-            case SQUARE:
-            case DIAMOND:
-            case CIRCLE:
-                Coord p = onUnitShape(distance, rng);
-                return new Coord3D(p.x, p.y, 0);//2D strategies
-            case CUBE:
-                x = rng.between((int) -distance, (int) distance + 1);
-                y = rng.between((int) -distance, (int) distance + 1);
-                z = rng.between((int) -distance, (int) distance + 1);
-                break;
-            case OCTAHEDRON:
-            case SPHERE:
-                do {
-                    x = rng.between((int) -distance, (int) distance + 1);
-                    y = rng.between((int) -distance, (int) distance + 1);
-                    z = rng.between((int) -distance, (int) distance + 1);
-                } while (radius(x, y, z) > distance);
-        }
-
-        return new Coord3D(x, y, z);
-    }
     public double volume2D(double radiusLength)
     {
         switch (this) {
