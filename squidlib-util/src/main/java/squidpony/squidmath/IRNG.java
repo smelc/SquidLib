@@ -20,8 +20,15 @@ public interface IRNG {
 	/**
 	 * Returns a value between min (inclusive) and max (exclusive).
 	 *
+	 * <p>
 	 * The inclusive and exclusive behavior is to match the behavior of the similar
 	 * method that deals with floating point values.
+	 * </p>
+	 * 
+	 * <p>
+	 * If {@code min} and {@code max} happen to be the same, {@code min} is returned
+	 * (breaking the exclusive behavior, but it's convenient to do so).
+	 * </p>
 	 *
 	 * @param min
 	 *            the minimum bound on the return value (inclusive)
