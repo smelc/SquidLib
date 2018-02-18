@@ -5472,34 +5472,6 @@ public class CoordPacker {
 		return ((index1 >> 16) | (index2 >> 15) | (index3 >> 14));
 	}
 
-	public static Coord3D mortonDecode3D(int morton) { // unpack 3 5-bit indices from a 15-bit Morton code
-		int value1 = morton;
-		int value2 = (value1 >>> 1);
-		int value3 = (value1 >>> 2);
-		value1 &= 0x00001249;
-		value2 &= 0x00001249;
-		value3 &= 0x00001249;
-		value1 |= (value1 >>> 2);
-		value2 |= (value2 >>> 2);
-		value3 |= (value3 >>> 2);
-		value1 &= 0x000010c3;
-		value2 &= 0x000010c3;
-		value3 &= 0x000010c3;
-		value1 |= (value1 >>> 4);
-		value2 |= (value2 >>> 4);
-		value3 |= (value3 >>> 4);
-		value1 &= 0x0000100f;
-		value2 &= 0x0000100f;
-		value3 &= 0x0000100f;
-		value1 |= (value1 >>> 8);
-		value2 |= (value2 >>> 8);
-		value3 |= (value3 >>> 8);
-		value1 &= 0x0000001f;
-		value2 &= 0x0000001f;
-		value3 &= 0x0000001f;
-		return new Coord3D(value1, value2, value3);
-	}
-
 	public static int mortonBitDecode3D(int morton) { // unpack 3 5-bit indices from a 15-bit Morton code
 		int value1 = morton;
 		int value2 = (value1 >>> 1);
