@@ -15,9 +15,6 @@
  */
 package squidpony.squidmath;
 
-import squidpony.annotation.Beta;
-import squidpony.annotation.GwtIncompatible;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -26,6 +23,8 @@ import java.util.ListIterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedSet;
+
+import squidpony.annotation.GwtIncompatible;
 
 /**
  * A generic linked hash set with with a fast implementation, originally from fastutil as ObjectLinkedOpenHashSet but modified to support indexed access.
@@ -79,7 +78,6 @@ import java.util.SortedSet;
  * @author Sebastiano Vigna (responsible for all the hard parts)
  * @author Tommy Ettinger (mostly responsible for squashing several layers of parent classes into one monster class)
  */
-@Beta
 public class OrderedSet<K> implements SortedSet<K>, java.io.Serializable, Cloneable {
     private static final long serialVersionUID = 0L;
     /**

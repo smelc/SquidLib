@@ -15,11 +15,22 @@
  */
 package squidpony.squidmath;
 
-import squidpony.annotation.Beta;
-import squidpony.annotation.GwtIncompatible;
-
 import java.io.Serializable;
-import java.util.*;
+import java.util.AbstractCollection;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+
+import squidpony.annotation.GwtIncompatible;
 
 /**
  * A generic linked hash map with with a fast implementation, originally from fastutil as Object2ObjectLinkedOpenHashMap but modified to support indexed access.
@@ -52,7 +63,6 @@ import java.util.*;
  * @author Sebastiano Vigna (responsible for all the hard parts)
  * @author Tommy Ettinger (mostly responsible for squashing several layers of parent classes into one monster class)
  */
-@Beta
 public class OrderedMap<K, V> implements SortedMap<K, V>, java.io.Serializable, Cloneable {
     private static final long serialVersionUID = 0L;
     /**

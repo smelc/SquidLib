@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import squidpony.GwtCompatibility;
-import squidpony.annotation.Beta;
 import squidpony.squidgrid.Radius;
 
 /**
@@ -13,7 +12,6 @@ import squidpony.squidgrid.Radius;
  * (fatty), but fast (greased lightning). Created by Tommy Ettinger on
  * 6/24/2016.
  */
-@Beta
 public class GreasedRegion implements Serializable {
 	private static final long serialVersionUID = 0;
 	private static final SobolQRNG sobol = new SobolQRNG(2);

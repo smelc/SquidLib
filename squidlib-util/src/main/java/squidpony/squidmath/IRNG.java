@@ -1,5 +1,6 @@
 package squidpony.squidmath;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -226,4 +227,10 @@ public interface IRNG {
 	 */
 	public <T> ArrayList<T> shuffle(Collection<T> elements, /* @Nullable */ ArrayList<T> buf);
 
+	/**
+	 * The state of {@code this}. May be {@code this} itself, maybe not.
+	 * 
+	 * @param acc
+	 */
+	public Serializable toSerializable();
 }

@@ -2,15 +2,12 @@ package squidpony.squidgrid;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-import squidpony.annotation.GwtIncompatible;
 import squidpony.squidmath.Bresenham;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.DDALine;
-import squidpony.squidmath.Elias;
 import squidpony.squidmath.OrderedSet;
 
 /**
@@ -43,15 +40,6 @@ public class LOS {
 	 */
 	public static final int BRESENHAM = 1;
 	/**
-	 * Uses Wu's Algorithm as modified by Elias to draw the line. Does not end at an
-	 * obstruction but rather returns one of the possible attempted paths in full.
-	 *
-	 * <p>
-	 * Be aware, it is GWT-incompatible.
-	 * </p>
-	 */
-	public static final int ELIAS = 2;
-	/**
 	 * Uses a series of rays internal to the start and end point to determine
 	 * visibility. Appearance is extremely close to DDA, which is also probably a
 	 * faster algorithm, so BRESENHAM (which can look a little better) and DDA are
@@ -79,7 +67,6 @@ public class LOS {
 	private int type;
 	private double[][] resistanceMap;
 	private int startx, starty, targetx, targety;
-	private Elias elias = null;
 
 	/**
 	 * Gets the radius strategy this uses.
@@ -122,8 +109,6 @@ public class LOS {
 	 */
 	public LOS(int type) {
 		this.type = type;
-		if (type == ELIAS)
-			elias = new Elias();
 	}
 
 	/**
@@ -215,10 +200,6 @@ public class LOS {
 		switch (type) {
 		case BRESENHAM:
 			return bresenhamReachable(radiusStrategy);
-		case ELIAS:
-			throw new IllegalStateException("Elias LOS is Gwt Incompatible");
-			// Comment required to compile with GWT:
-			// return eliasReachable(radiusStrategy);
 		case RAY:
 			return rayReachable(radiusStrategy);
 		case DDA:
@@ -585,66 +566,4 @@ public class LOS {
 		return end.x == targetx && end.y == targety;
 	}
 
-	@GwtIncompatible /* Because of Thread */
-	private boolean eliasReachable(Radius radiusStrategy) {
-		if (elias == null)
-			elias = new Elias();
-		List<Coord> ePath = elias.line(startx, starty, targetx, targety);
-		lastPath = new LinkedList<>(ePath);// save path for later retreival
-
-		HashMap<EliasWorker, Thread> pool = new HashMap<>();
-
-		for (Coord p : ePath) {
-			EliasWorker worker = new EliasWorker(p.x, p.y, radiusStrategy);
-			Thread thread = new Thread(worker);
-			thread.start();
-			pool.put(worker, thread);
-		}
-
-		for (EliasWorker w : pool.keySet()) {
-			try {
-				pool.get(w).join();
-			} catch (InterruptedException ex) {
-			}
-			if (w.succeeded) {
-				lastPath = w.path;
-				return true;
-			}
-		}
-
-		return false;// never got to the target point
-	}
-
-	private class EliasWorker implements Runnable {
-
-		private LinkedList<Coord> path;
-		private boolean succeeded = false;
-		private int testx, testy;
-		private Radius eliasRadiusStrategy;
-
-		EliasWorker(int testx, int testy, Radius radiusStrategy) {
-			this.testx = testx;
-			this.testy = testy;
-			this.eliasRadiusStrategy = radiusStrategy;
-		}
-
-		@Override
-		public void run() {
-			LOS los1 = new LOS(BRESENHAM);
-			LOS los2 = new LOS(BRESENHAM);
-			// if a non-solid midpoint on the path can see both the start and end, consider
-			// the two ends to be able to see each other
-			if (resistanceMap[testx][testy] < 1
-					&& eliasRadiusStrategy.radius(startx, starty, testx, testy) <= eliasRadiusStrategy.radius(startx,
-							starty, targetx, targety)
-					&& los1.isReachable(resistanceMap, testx, testy, targetx, targety, eliasRadiusStrategy)
-					&& los2.isReachable(resistanceMap, startx, starty, testx, testy, eliasRadiusStrategy)) {
-
-				// record actual sight path used
-				path = new LinkedList<>(los2.lastPath);
-				path.addAll(los1.lastPath);
-				succeeded = true;
-			}
-		}
-	}
 }

@@ -1,7 +1,5 @@
 package squidpony.squidmath;
 
-import squidpony.annotation.Beta;
-
 import java.io.Serializable;
 
 /**
@@ -1481,7 +1479,6 @@ public class CrossHash {
             return (int) ((result ^= Long.rotateLeft((z * 0xC6BC279692B5CC83L ^ $alt ^ result * 0x9E3779B97F4A7C15L) + 0x632BE59BD9B4E019L, (int) (chips + z >>> 58))) ^ (result >>> 32));
         }
     }
-    @Beta
     public static class Falcon
     {
         public static long hash64(final boolean[] data) {
@@ -1769,7 +1766,6 @@ public class CrossHash {
             return result ^ ((z ^ result) >>> 8) * 0x9E3779B9;
         }
     }
-    @Beta
     public static class Wisp
     {
         public static long hash64(final boolean[] data) {
