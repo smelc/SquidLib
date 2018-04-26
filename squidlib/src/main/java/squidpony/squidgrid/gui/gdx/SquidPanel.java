@@ -18,7 +18,6 @@ import squidpony.panel.ISquidPanel;
 import squidpony.squidgrid.Direction;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedSet;
-import squidpony.squidmath.StatefulRNG;
 
 /**
  * Displays text and images in a grid pattern. Supports basic animations.
@@ -60,36 +59,6 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 	private boolean onlyRenderEven = false;
 
 	/**
-	 * Creates a bare-bones panel with all default values for text rendering.
-	 *
-	 * @param gridWidth
-	 *            the number of cells horizontally
-	 * @param gridHeight
-	 *            the number of cells vertically
-	 */
-	public SquidPanel(int gridWidth, int gridHeight) {
-		this(gridWidth, gridHeight, new TextCellFactory().defaultSquareFont());
-	}
-
-	/**
-	 * Creates a panel with the given grid and cell size. Uses a default square
-	 * font.
-	 *
-	 * @param gridWidth
-	 *            the number of cells horizontally
-	 * @param gridHeight
-	 *            the number of cells vertically
-	 * @param cellWidth
-	 *            the number of horizontal pixels in each cell
-	 * @param cellHeight
-	 *            the number of vertical pixels in each cell
-	 */
-	public SquidPanel(int gridWidth, int gridHeight, int cellWidth, int cellHeight) {
-		this(gridWidth, gridHeight,
-				new TextCellFactory().defaultSquareFont().width(cellWidth).height(cellHeight).initBySize());
-	}
-
-	/**
 	 * Builds a panel with the given grid size and all other parameters determined
 	 * by the factory. Even if sprite images are being used, a TextCellFactory is
 	 * still needed to perform sizing and other utility functions.
@@ -104,41 +73,19 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 	 *            the number of cells vertically
 	 * @param factory
 	 *            the factory to use for cell rendering
-	 */
-	public SquidPanel(int gridWidth, int gridHeight, TextCellFactory factory) {
-		this(gridWidth, gridHeight, factory, 0f, 0f);
-	}
-
-	/**
-	 * Builds a panel with the given grid size and all other parameters determined
-	 * by the factory. Even if sprite images are being used, a TextCellFactory is
-	 * still needed to perform sizing and other utility functions.
-	 *
-	 * If the TextCellFactory has not yet been initialized, then it will be sized at
-	 * 12x12 px per cell. If it is null then a default one will be created and
-	 * initialized.
-	 *
-	 * @param gridWidth
-	 *            the number of cells horizontally
-	 * @param gridHeight
-	 *            the number of cells vertically
-	 * @param factory
-	 *            the factory to use for cell rendering
+	 * @param assetManager
 	 * @param center
 	 *            The color center to use. Can be {@code null}, but then must be set
 	 *            later on with {@link #setColorCenter(IColorCenter)}.
 	 */
-	public SquidPanel(int gridWidth, int gridHeight, TextCellFactory factory, float xOffset, float yOffset) {
+	public SquidPanel(int gridWidth, int gridHeight, TextCellFactory factory, float xOffset,
+			float yOffset) {
 		this.gridWidth = gridWidth;
 		this.gridHeight = gridHeight;
-
-		if (factory == null) {
-			textFactory = new TextCellFactory();
-		} else
-			textFactory = factory;
-		if (!textFactory.initialized()) {
+		assert factory != null;
+		this.textFactory = factory;
+		if (!textFactory.initialized())
 			textFactory.initByFont();
-		}
 
 		cellWidth = MathUtils.round(textFactory.actualCellWidth);
 		cellHeight = MathUtils.round(textFactory.actualCellHeight);
@@ -295,24 +242,6 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 	 */
 	public TextCellFactory getTextCellFactory() {
 		return textFactory;
-	}
-
-	/**
-	 * Sets the size of the text in this SquidPanel (but not the size of the cells)
-	 * to the given width and height in pixels (which may be stretched by viewports
-	 * later on, if your program uses them).
-	 * 
-	 * @param wide
-	 *            the width of a glyph in pixels
-	 * @param high
-	 *            the height of a glyph in pixels
-	 * @return this for chaining
-	 */
-	public SquidPanel setTextSize(int wide, int high) {
-		textFactory.tweakHeight(high).tweakWidth(wide).initBySize();
-		// textFactory.setSmoothingMultiplier((3f + Math.max(cellWidth * 1f / wide,
-		// cellHeight * 1f / high)) / 4f);
-		return this;
 	}
 
 	@Override
@@ -723,82 +652,6 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 	 */
 	public void slide(Coord start, Coord end, float duration) {
 		slide(start.x, start.y, end.x, end.y, duration);
-	}
-
-	/**
-	 * Starts an wiggling animation for the object at the given location for the
-	 * given duration in seconds.
-	 *
-	 * @param ae
-	 *            an AnimatedEntity returned by animateActor()
-	 * @param duration
-	 */
-	public void wiggle(final AnimatedEntity ae, float duration) {
-
-		final Actor a = ae.actor;
-		final float x = adjustX(ae.gridX, ae.doubleWidth), y = adjustY(ae.gridY);
-		// final int x = ae.gridX * cellWidth * ((ae.doubleWidth) ? 2 : 1) +
-		// (int)getX(), y = (gridHeight - ae.gridY - 1) * cellHeight - 1 + (int)getY();
-		if (a == null || ae.animating)
-			return;
-		duration = clampDuration(duration);
-		ae.animating = true;
-		animationCount++;
-		StatefulRNG gRandom = DefaultResources.getGuiRandom();
-		a.addAction(Actions.sequence(
-				Actions.moveToAligned(x + (gRandom.nextFloat() - 0.5F) * cellWidth * 0.4f,
-						y + (gRandom.nextFloat() - 0.5F) * cellHeight * 0.4f, Align.bottomLeft, duration * 0.2F),
-				Actions.moveToAligned(x + (gRandom.nextFloat() - 0.5F) * cellWidth * 0.4f,
-						y + (gRandom.nextFloat() - 0.5F) * cellHeight * 0.4f, Align.bottomLeft, duration * 0.2F),
-				Actions.moveToAligned(x + (gRandom.nextFloat() - 0.5F) * cellWidth * 0.4f,
-						y + (gRandom.nextFloat() - 0.5F) * cellHeight * 0.4f, Align.bottomLeft, duration * 0.2F),
-				Actions.moveToAligned(x + (gRandom.nextFloat() - 0.5F) * cellWidth * 0.4f,
-						y + (gRandom.nextFloat() - 0.5F) * cellHeight * 0.4f, Align.bottomLeft, duration * 0.2F),
-				Actions.moveToAligned(x, y, Align.bottomLeft, duration * 0.2F),
-				Actions.delay(duration, Actions.run(new Runnable() {
-					@Override
-					public void run() {
-						recallActor(ae);
-					}
-				}))));
-	}
-
-	/**
-	 * Starts an wiggling animation for the object at the given location for the
-	 * given duration in seconds.
-	 *
-	 * @param x
-	 * @param y
-	 * @param duration
-	 */
-	public void wiggle(int x, int y, float duration) {
-		final Actor a = cellToActor(x, y);
-		if (a == null)
-			return;
-		duration = clampDuration(duration);
-		animationCount++;
-		float nextX = adjustX(x, false), nextY = adjustY(y);
-		/*
-		 * x *= cellWidth; y = (gridHeight - y - 1); y *= cellHeight; y -= 1; x +=
-		 * getX(); y += getY();
-		 */
-		StatefulRNG gRandom = DefaultResources.getGuiRandom();
-		a.addAction(Actions.sequence(
-				Actions.moveToAligned(nextX + (gRandom.nextFloat() - 0.5F) * cellWidth * 0.4f,
-						nextY + (gRandom.nextFloat() - 0.5F) * cellHeight * 0.4f, Align.bottomLeft, duration * 0.2F),
-				Actions.moveToAligned(nextX + (gRandom.nextFloat() - 0.5F) * cellWidth * 0.4f,
-						nextY + (gRandom.nextFloat() - 0.5F) * cellHeight * 0.4f, Align.bottomLeft, duration * 0.2F),
-				Actions.moveToAligned(nextX + (gRandom.nextFloat() - 0.5F) * cellWidth * 0.4f,
-						nextY + (gRandom.nextFloat() - 0.5F) * cellHeight * 0.4f, Align.bottomLeft, duration * 0.2F),
-				Actions.moveToAligned(nextX + (gRandom.nextFloat() - 0.5F) * cellWidth * 0.4f,
-						nextY + (gRandom.nextFloat() - 0.5F) * cellHeight * 0.4f, Align.bottomLeft, duration * 0.2F),
-				Actions.moveToAligned(nextX, nextY, Align.bottomLeft, duration * 0.2F),
-				Actions.delay(duration, Actions.run(new Runnable() {
-					@Override
-					public void run() {
-						recallActor(a, true);
-					}
-				}))));
 	}
 
 	/**

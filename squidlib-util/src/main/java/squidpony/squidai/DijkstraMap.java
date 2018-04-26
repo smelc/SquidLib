@@ -19,7 +19,6 @@ import squidpony.squidmath.LightRNG;
 import squidpony.squidmath.OrderedMap;
 import squidpony.squidmath.OrderedSet;
 import squidpony.squidmath.RNG;
-import squidpony.squidmath.StatefulRNG;
 
 /**
  * An alternative to AStarSearch when you want to fully explore a search space,
@@ -2711,58 +2710,6 @@ public class DijkstraMap implements Serializable {
 		}
 		frustration = 0;
 		goals.clear();
-		return new ArrayList<>(path);
-	}
-
-	/**
-	 * Intended primarily for internal use. Needs scan() to already be called and at
-	 * least one goal to already be set, and does not restrict the length of the
-	 * path or behave as if the pathfinder has allies or enemies. <br>
-	 * This caches its result in a member field, path, which can be fetched after
-	 * finding a path and will change with each call to a pathfinding method.
-	 *
-	 * @param target
-	 *            the target cell
-	 * @return an ArrayList of Coord that make up the best path. Copy of path.
-	 */
-	public ArrayList<Coord> findPathPreScanned(Coord target) {
-		if (!initialized || goals == null || goals.isEmpty())
-			return null;
-		RNG rng2 = new StatefulRNG(new LightRNG(0xf00d));
-		path.clear();
-		Coord currentPos = target;
-		while (true) {
-			if (frustration > 2000) {
-				path.clear();
-				break;
-			}
-			double best = gradientMap[currentPos.x][currentPos.y];
-			final Direction[] dirs = appendDirToShuffle(rng2);
-			int choice = rng2.nextInt(measurement.directionCount() + 1);
-
-			for (int d = 0; d <= measurement.directionCount(); d++) {
-				Coord pt = Coord.get(currentPos.x + dirs[d].deltaX, currentPos.y + dirs[d].deltaY);
-				if (gradientMap[pt.x][pt.y] < best) {
-					if (dirs[choice] == Direction.NONE || !path.contains(pt)) {
-						best = gradientMap[pt.x][pt.y];
-						choice = d;
-					}
-				}
-			}
-
-			if (best >= gradientMap[currentPos.x][currentPos.y]
-					|| physicalMap[currentPos.x + dirs[choice].deltaX][currentPos.y + dirs[choice].deltaY] > FLOOR) {
-				path.clear();
-				break;
-			}
-			currentPos = currentPos.translate(dirs[choice].deltaX, dirs[choice].deltaY);
-			path.add(0, currentPos);
-			frustration++;
-
-			if (gradientMap[currentPos.x][currentPos.y] == 0)
-				break;
-		}
-		frustration = 0;
 		return new ArrayList<>(path);
 	}
 

@@ -394,43 +394,4 @@ public class GwtCompatibility {
         return alt;
     }
 
-    /**
-     * Given an ordering such as one produced by {@link squidpony.squidmath.RNG#randomOrdering(int, int[])}, this finds
-     * its inverse, able to reverse the reordering and vice versa.
-     * @param ordering the ordering to find the inverse for
-     * @return the inverse of ordering
-     */
-    public static int[] invertOrdering(int[] ordering)
-    {
-        int ol = 0;
-        if(ordering == null || (ol = ordering.length) == 0) return ordering;
-        int[] next = new int[ol];
-        for (int i = 0; i < ol; i++) {
-            if(ordering[i] < 0 || ordering[i] >= ol) return next;
-            next[ordering[i]] = i;
-        }
-        return next;
-    }
-
-    /**
-     * Given an ordering such as one produced by {@link squidpony.squidmath.RNG#randomOrdering(int, int[])}, this finds
-     * its inverse, able to reverse the reordering and vice versa. This overload doesn't allocate a new int
-     * array, and instead relies on having an int array of the same size as ordering passed to it as an
-     * additional argument.
-     * @param ordering the ordering to find the inverse for
-     * @param dest the int array to put the inverse reordering into; should have the same length as ordering
-     * @return the inverse of ordering; will have the same value as dest
-     */
-    public static int[] invertOrdering(int[] ordering, int[] dest)
-    {
-        int ol = 0;
-        if(ordering == null || dest == null || (ol = Math.min(ordering.length, dest.length)) == 0)
-            return ordering;
-        for (int i = 0; i < ol; i++) {
-            if(ordering[i] < 0 || ordering[i] >= ol) return dest;
-            dest[ordering[i]] = i;
-        }
-        return dest;
-    }
-
 }

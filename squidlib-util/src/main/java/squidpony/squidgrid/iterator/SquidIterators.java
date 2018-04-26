@@ -1,12 +1,13 @@
 package squidpony.squidgrid.iterator;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 import squidpony.squidgrid.Direction;
 import squidpony.squidmath.Coord;
 
-import java.util.NoSuchElementException;
-
 /**
- * Instances of {@link SquidIterator}.
+ * Instances of {@code Iterator<Coord>}.
  * 
  * @author smelC
  */
@@ -18,7 +19,7 @@ public class SquidIterators {
 	 * 
 	 * @author smelC
 	 */
-	public static class BottomLeftToTopRight implements SquidIterator {
+	public static class BottomLeftToTopRight implements Iterator<Coord> {
 
 		protected final int width;
 		protected final int height;
@@ -134,7 +135,7 @@ public class SquidIterators {
 	 * 
 	 * @author smelC
 	 */
-	public static class CenteredSquare implements SquidIterator {
+	public static class CenteredSquare implements Iterator<Coord> {
 
 		protected final int width;
 		protected final int height;
@@ -283,7 +284,7 @@ public class SquidIterators {
 	 * 
 	 * @author smelC
 	 */
-	public static class RectangleFromBottomLeftToTopRight implements SquidIterator {
+	public static class RectangleFromBottomLeftToTopRight implements Iterator<Coord> {
 
 		protected final int xstart;
 		protected final int ystart;
@@ -360,7 +361,7 @@ public class SquidIterators {
 	 * 
 	 * @author smelC
 	 */
-	public static class AroundCounterClockWise implements SquidIterator {
+	public static class AroundCounterClockWise implements Iterator<Coord> {
 
 		protected final int width;
 		protected final int height;
@@ -464,7 +465,7 @@ public class SquidIterators {
 	 * 
 	 * @author smelC
 	 */
-	public static class VerticalUp implements SquidIterator {
+	public static class VerticalUp implements Iterator<Coord> {
 
 		/** The starting X-coordinate */
 		protected final int startx;
@@ -587,7 +588,7 @@ public class SquidIterators {
 	 * 
 	 * @author smelC
 	 */
-	public static class Linear implements SquidIterator {
+	public static class Linear implements Iterator<Coord> {
 
 		/** The current X-coordinate */
 		protected int x;

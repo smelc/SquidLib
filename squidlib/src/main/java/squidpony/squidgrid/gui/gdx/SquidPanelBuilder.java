@@ -1,8 +1,10 @@
 package squidpony.squidgrid.gui.gdx;
 
+import com.badlogic.gdx.assets.AssetDescriptor;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 import squidpony.IColorCenter;
@@ -79,37 +81,41 @@ public abstract class SquidPanelBuilder extends IPanelBuilder.Skeleton {
 	@Override
 	public SquidPanel buildByCells(int hCells, int vCells, int cellWidth, int cellHeight,
 			/* @Nullable */ TextCellFactory tcf_) {
+		if (cellWidth != cellHeight)
+			throw new IllegalStateException("Non square cells aren't supported");
+
 		final TextCellFactory tcf;
-		final boolean freshTCF;
 		if (tcf_ != null && tcf_.width() == cellWidth && tcf_.height() == cellHeight) {
 			/* Can reuse */
 			tcf = tcf_;
-			freshTCF = false;
 		} else {
-			tcf = new TextCellFactory(assetManager);
-			freshTCF = true;
-		}
-
-		if (cellWidth == cellHeight) {
 			final int fontSize = fontSizeForCellSize(cellWidth);
 			if (!hasFontOfSize(fontSize))
 				throw new IllegalStateException("No font of size " + fontSize);
 
-			final String fontFile = fontfile(fontSize);
-			if (freshTCF) {
-				/* Initialize it */
-				tcf.font(fontFile);
-				for (TextureRegion region : tcf.font().getRegions())
-					region.getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
-				tcf.initByFont();
-				tcf.width(cellWidth).height(cellHeight);
-			}
-			final SquidPanel result = new SquidPanel(hCells, vCells, tcf);
-			if (defaultForegroundColor != null)
-				result.setDefaultForeground(defaultForegroundColor);
-			return result;
-		} else
-			throw new IllegalStateException("Non square cells aren't supported");
+			final String fontpath = fontfile(fontSize);
+
+			assetManager.load(new AssetDescriptor<BitmapFont>(fontpath, BitmapFont.class));
+			/*
+			 * We're using the AssetManager not be asynchronous, but to avoid loading a file
+			 * twice (because that takes some time (tens of milliseconds)). Hence this KISS
+			 * code to avoid having to handle a not-yet-loaded font:
+			 */
+			assetManager.finishLoading();
+			final BitmapFont bmpFont = assetManager.get(fontpath, BitmapFont.class);
+			tcf = new TextCellFactory(bmpFont);
+			for (TextureRegion region : tcf.font().getRegions())
+				region.getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
+			tcf.initByFont();
+			tcf.width(cellWidth).height(cellHeight);
+		}
+
+		assert tcf != null;
+
+		final SquidPanel result = new SquidPanel(hCells, vCells, tcf, 0f, 0f);
+		if (defaultForegroundColor != null)
+			result.setDefaultForeground(defaultForegroundColor);
+		return result;
 	}
 
 	/**

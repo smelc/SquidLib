@@ -2,15 +2,12 @@ package squidpony.squidgrid.gui.gdx;
 
 import java.util.Map;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.assets.AssetDescriptor;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -49,12 +46,7 @@ public class TextCellFactory implements Disposable {
 	public static final String DEFAULT_FITTING = "@!#$%^&*()_+1234567890-=~ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz;:,'\"{}?/\\ ",
 			LINE_FITTING = "┼├┤┴┬┌┐└┘│─", SQUID_FITTING = DEFAULT_FITTING + LINE_FITTING;
 
-	/**
-	 * The {@link AssetManager} from where to load the font. Use it to share loading
-	 * of a font's file across multiple factories.
-	 */
-	protected /* Nullable */AssetManager assetManager;
-	public BitmapFont bmpFont = null;
+	private final BitmapFont bmpFont;
 	protected Texture block = null;
 	protected TextureRegion dirMarker = null;
 	protected String fitting = SQUID_FITTING;
@@ -62,7 +54,7 @@ public class TextCellFactory implements Disposable {
 	protected int width = 1, height = 1;
 	protected float actualCellWidth = 1, actualCellHeight = 1;
 	protected float distanceFieldScaleX = 36f, distanceFieldScaleY = 36f;
-	private boolean initialized = false, initializedByFont = false, initializedBySize = false;
+	private boolean initialized = false;
 	protected boolean distanceField = false;
 	protected ShaderProgram shader;
 	protected float smoothingMultiplier = 1f;
@@ -70,14 +62,6 @@ public class TextCellFactory implements Disposable {
 	private Label.LabelStyle style;
 	protected OrderedMap<String, String> swap = new OrderedMap<>(32);
 	protected char directionGlyph = '^';
-
-	/**
-	 * Creates a default valued factory. One of the initialization methods must be
-	 * called before this factory can be used!
-	 */
-	public TextCellFactory() {
-		this(null);
-	}
 
 	/**
 	 * A default valued factory that uses the given {@link AssetManager} to load the
@@ -91,38 +75,9 @@ public class TextCellFactory implements Disposable {
 	 * @param assetManager
 	 *            an ordinary libGDX AssetManager
 	 */
-	public TextCellFactory(/* Nullable */ AssetManager assetManager) {
-		this.assetManager = assetManager;
+	public TextCellFactory(BitmapFont font) {
+		this.bmpFont= font;
 		swap.put("\u0006", " ");
-	}
-
-	public TextCellFactory copy() {
-		TextCellFactory next = new TextCellFactory(assetManager);
-		// next.bmpFont = bmpFont;
-		if (bmpFont == null)
-			bmpFont = DefaultResources.getIncludedFont();
-		next.bmpFont = new BitmapFont(new BitmapFont.BitmapFontData(bmpFont.getData().getFontFile(), false),
-				bmpFont.getRegions(), bmpFont.usesIntegerPositions());
-		next.block = block;
-		next.swap = new OrderedMap<>(swap);
-		next.distanceField = distanceField;
-		next.distanceFieldScaleX = distanceFieldScaleX;
-		next.distanceFieldScaleY = distanceFieldScaleY;
-		next.shader = null;
-		next.fitting = fitting;
-		next.height = height;
-		next.width = width;
-		next.actualCellWidth = actualCellWidth;
-		next.actualCellHeight = actualCellHeight;
-		next.descent = descent;
-		next.lineHeight = lineHeight;
-		// next.modifiedHeight = modifiedHeight;
-		next.smoothingMultiplier = smoothingMultiplier;
-		if (initializedBySize)
-			next.initBySize();
-		else if (initializedByFont)
-			next.initByFont();
-		return next;
 	}
 
 	/**
@@ -136,8 +91,6 @@ public class TextCellFactory implements Disposable {
 	 * @return this for method chaining
 	 */
 	public TextCellFactory initByFont() {
-		if (bmpFont == null)
-			bmpFont = DefaultResources.getIncludedFont();
 		bmpFont.setFixedWidthGlyphs(fitting);
 		width = (int) bmpFont.getSpaceWidth();
 		lineHeight = bmpFont.getLineHeight();
@@ -157,65 +110,7 @@ public class TextCellFactory implements Disposable {
 		BitmapFont.Glyph g = bmpFont.getData().getGlyph(directionGlyph);
 		dirMarker = new TextureRegion(bmpFont.getRegion(g.page), g.srcX, g.srcY, g.width, g.height);
 		initialized = true;
-		initializedByFont = true;
 		return this;
-	}
-
-	/**
-	 * Initializes the factory to then be able to create text cells on demand.
-	 *
-	 * Will strictly use the provided width and height values to size the cells.
-	 *
-	 * Calling this after the factory has already been initialized will
-	 * re-initialize it.
-	 *
-	 * @return this for method chaining
-	 */
-	public TextCellFactory initBySize() {
-		if (bmpFont == null)
-			bmpFont = DefaultResources.getIncludedFont();
-
-		// bmpFont.setFixedWidthGlyphs(fitting);
-		Pixmap temp = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-		temp.setColor(Color.WHITE);
-		temp.fill();
-		block = new Texture(1, 1, Pixmap.Format.RGBA8888);
-		block.draw(temp, 0, 0);
-		temp.dispose();
-		if (distanceField) {
-			bmpFont.getData().setScale(width / distanceFieldScaleX, height / distanceFieldScaleY);
-
-			shader = new ShaderProgram(DefaultResources.vertexShader, DefaultResources.fragmentShader);
-			if (!shader.isCompiled()) {
-				Gdx.app.error("shader", "Distance Field font shader compilation failed:\n" + shader.getLog());
-			}
-			lineHeight = bmpFont.getLineHeight();
-			// lineTweak = lineHeight / 20f;
-			// distanceFieldScaleX *= (((float)width) / height) / (distanceFieldScaleX /
-			// distanceFieldScaleY);
-		} else {
-			shader = SpriteBatch.createDefaultShader();
-			lineHeight = bmpFont.getLineHeight();
-			// lineTweak = lineHeight * 0.0625f;
-		}
-		descent = bmpFont.getDescent();
-		style = new Label.LabelStyle(bmpFont, null);
-		BitmapFont.Glyph g = bmpFont.getData().getGlyph(directionGlyph);
-		dirMarker = new TextureRegion(bmpFont.getRegion(g.page), g.srcX, g.srcY, g.width, g.height);
-		initialized = true;
-		initializedBySize = true;
-		return this;
-	}
-
-	/**
-	 * Initializes the factory to then be able to create text cells on demand.
-	 *
-	 * (This is identical to initBySize() when using libGDX.)
-	 *
-	 * @return this for method chaining
-	 */
-	public TextCellFactory initVerbatim() {
-		return initBySize();
 	}
 
 	/**
@@ -225,287 +120,6 @@ public class TextCellFactory implements Disposable {
 	 */
 	public BitmapFont font() {
 		return bmpFont;
-	}
-
-	/**
-	 * Sets this factory to use the provided font.
-	 *
-	 * This is a way to complete a needed step; the font must be set before
-	 * initializing, which can be done by a few methods in this class.
-	 *
-	 * This should be called with an argument such as "Rogue-Zodiac-6x12.fnt", that
-	 * is, it should have the .fnt extension as opposed to the .png that accompanies
-	 * such a bitmap font. The bitmap font should be either in the internal folder
-	 * that libGDX knows about, which means it is in the assets folder of your
-	 * project usually, or it can be on the classpath, which mostly applies to these
-	 * resources bundled with SquidLib:
-	 * <ul>
-	 * <li>DefaultResources.squareName = "Zodiac-Square-12x12.fnt"</li>
-	 * <li>DefaultResources.narrowName = "Rogue-Zodiac-6x12.fnt"</li>
-	 * <li>DefaultResources.unicodeName = "Mandrill-6x16.fnt"</li>
-	 * <li>DefaultResources.smoothName = "Inconsolata-LGC-8x18.fnt"</li>
-	 * <li>DefaultResources.squareNameLarge = "Zodiac-Square-24x24.fnt"</li>
-	 * <li>DefaultResources.narrowNameLarge = "Rogue-Zodiac-12x24.fnt"</li>
-	 * <li>DefaultResources.unicodeNameLarge = "Mandrill-12x32.fnt"</li>
-	 * <li>DefaultResources.smoothNameLarge = "Inconsolata-LGC-12x24.fnt"</li>
-	 * <li>DefaultResources.narrowNameExtraLarge = "Rogue-Zodiac-18x36.fnt"</li>
-	 * <li>There is also a sequence of resized versions of Inconsolata LGC, altered
-	 * to fit in a square area. These don't have names in DefaultResources; you
-	 * should use the overload of font() that takes a BitmapFont if you want to use
-	 * the multiple, increasingly-resized versions.</li>
-	 * </ul>
-	 * "Rogue-Zodiac-12x24.fnt", which is easily accessed by the field
-	 * DefaultResources.narrowNameLarge , can also be set using
-	 * TextCellFactory.defaultNarrowFont() instead of font().
-	 * "Zodiac-Square-12x12.fnt", also accessible as DefaultResources.squareName ,
-	 * can be set using TextCellFactory.defaultSquareFont() instead of font().
-	 * "Inconsolata-LGC-12x24.fnt", also accessible as
-	 * DefaultResources.smoothNameLarge , can be set using
-	 * TextCellFactory.defaultFont() instead of font(). All three of these
-	 * alternatives will cache the BitmapFont if the same one is requested later,
-	 * but this font() method will not. <br>
-	 * See https://github.com/libgdx/libgdx/wiki/Hiero for some ways to create a
-	 * bitmap font this can use. Several fonts in this list were created using Hiero
-	 * (not Hiero4), and several were created with AngelCode's BMFont tool.
-	 *
-	 * @param fontpath
-	 *            the path to the font to use
-	 * @return this factory for method chaining
-	 */
-	public TextCellFactory font(String fontpath) {
-		if (assetManager == null) {
-			if (Gdx.files.internal(fontpath).exists())
-				bmpFont = new BitmapFont(Gdx.files.internal(fontpath));
-			else if (Gdx.files.classpath(fontpath).exists())
-				bmpFont = new BitmapFont(Gdx.files.classpath(fontpath));
-			else
-				bmpFont = DefaultResources.getIncludedFont();
-		} else {
-			assetManager.load(new AssetDescriptor<>(fontpath, BitmapFont.class));
-			/*
-			 * We're using the AssetManager not be asynchronous, but to avoid loading a file
-			 * twice (because that takes some time (tens of milliseconds)). Hence this KISS
-			 * code to avoid having to handle a not-yet-loaded font:
-			 */
-			assetManager.finishLoading();
-			bmpFont = assetManager.get(fontpath, BitmapFont.class);
-		}
-		return this;
-	}
-
-	/**
-	 * Sets this factory to use the provided BitmapFont as its font without
-	 * re-constructing anything.
-	 *
-	 * This is a way to complete a needed step; the font must be set before
-	 * initializing, which can be done by a few methods in this class.
-	 *
-	 * This should be called with an argument such as
-	 * {@code DefaultResources.getDefaultFont()} or any other variable with
-	 * BitmapFont as its type. The bitmap font will not be loaded from file with
-	 * this method, which it would be if you called the overload of font() that
-	 * takes a String more than once. These BitmapFont resources are already bundled
-	 * with SquidLib:
-	 * <ul>
-	 * <li>DefaultResources.getDefaultFont() = "Zodiac-Square-12x12.fnt"</li>
-	 * <li>DefaultResources.getDefaultNarrowFont() = "Rogue-Zodiac-6x12.fnt"</li>
-	 * <li>DefaultResources.getDefaultUnicodeFont() = "Mandrill-6x16.fnt"</li>
-	 * <li>DefaultResources.getSmoothFont() = "Inconsolata-LGC-8x18.fnt"</li>
-	 * <li>DefaultResources.getLargeFont() = "Zodiac-Square-24x24.fnt"</li>
-	 * <li>DefaultResources.getLargeNarrowFont() = "Rogue-Zodiac-12x24.fnt"</li>
-	 * <li>DefaultResources.getLargeUnicodeFont() = "Mandrill-12x32.fnt"</li>
-	 * <li>DefaultResources.getLargeSmoothFont() = "Inconsolata-LGC-12x24.fnt"</li>
-	 * <li>DefaultResources.getExtraLargeNarrowFont() =
-	 * "Rogue-Zodiac-18x36.fnt"</li>
-	 * <li>There is also a sequence of resized versions of Inconsolata LGC, altered
-	 * to fit in a square area. These can be accessed with
-	 * DefaultResources.getZoomedFont(), passing an int between 0 and 11
-	 * inclusive.</li>
-	 * </ul>
-	 * "Rogue-Zodiac-12x24.fnt", which is easily accessed by the method
-	 * DefaultResources.getLargeNarrowFont() , can also be set using
-	 * TextCellFactory.defaultNarrowFont() instead of font().
-	 * "Zodiac-Square-12x12.fnt", also accessible with
-	 * DefaultResources.getDefaultFont() , can be set using
-	 * TextCellFactory.defaultSquareFont() instead of font().
-	 * "Inconsolata-LGC-12x24.fnt", also accessible with
-	 * DefaultResources.getLargeSmoothFont() , can be set using
-	 * TextCellFactory.defaultFont() instead of font(). All three of these
-	 * alternatives will cache the BitmapFont if the same one is requested later,
-	 * but this font() method will not. <br>
-	 * See https://github.com/libgdx/libgdx/wiki/Hiero for some ways to create a
-	 * bitmap font this can use. Several fonts in this list were created using Hiero
-	 * (not Hiero4), and several were created with AngelCode's BMFont tool.
-	 *
-	 * @param bitmapFont
-	 *            the BitmapFont this should use
-	 * @return this factory for method chaining
-	 */
-	public TextCellFactory font(BitmapFont bitmapFont) {
-		if (bitmapFont == null) {
-			bmpFont = DefaultResources.getIncludedFont();
-		} else {
-			bmpFont = bitmapFont;
-		}
-		return this;
-	}
-
-	/**
-	 * Sets the font to a distance field font with the given String path to a .fnt
-	 * file and String path to a texture. Distance field fonts should scale cleanly
-	 * to multiple resolutions without artifacts. Does not use AssetManager since
-	 * you shouldn't need to reload the font if it scales with one image. You need
-	 * to configure the shader to use distance field fonts unless a class already
-	 * does this for you (SquidLayers handles shader configuration internally, for
-	 * example). TextCellFactory has a method, configureShader(Batch), that does
-	 * this and should be called while that Batch has begun rendering, typically in
-	 * an override of some containing Scene2D Group's draw(Batch, float) method.
-	 * <br>
-	 * At least two distance field fonts are included in SquidLib; one is square,
-	 * one is narrow, and they can both be accessed using either the predefined
-	 * TextCellFactory objects in DefaultResources, accessible with
-	 * getStretchableFont() for narrow or getStretchableSquareFont() for square, or
-	 * the setter methods in this class, defaultDistanceFieldFont() for square and
-	 * defaultNarrowDistanceFieldFont() for narrow. <br>
-	 * To create distance field fonts that work well with monospace layout is...
-	 * time-consuming and error-prone, though not especially difficult for most
-	 * fonts. The process is documented as well as we can, given how differently all
-	 * fonts are made, in a file not included in the distribution JAR but present on
-	 * GitHub:
-	 * https://github.com/SquidPony/SquidLib/blob/master/squidlib/etc/making-distance-field-fonts.txt
-	 * 
-	 * @param fontPath
-	 *            the path to a .fnt bitmap font file with distance field effects
-	 *            applied, which requires a complex process to create.
-	 * @param texturePath
-	 *            the path to the texture used by the bitmap font
-	 * @return this factory for method chaining
-	 */
-	public TextCellFactory fontDistanceField(String fontPath, String texturePath) {
-		Texture tex;
-		if (Gdx.files.internal(texturePath).exists()) {
-			Gdx.app.debug("font", "Using internal font texture at " + texturePath);
-			tex = new Texture(Gdx.files.internal(texturePath), true);
-			tex.setFilter(Texture.TextureFilter.MipMapLinearNearest, Texture.TextureFilter.Linear);
-		} else if (Gdx.files.classpath(texturePath).exists()) {
-			Gdx.app.debug("font", "Using classpath font texture at " + texturePath);
-			tex = new Texture(Gdx.files.classpath(texturePath), true);
-			tex.setFilter(Texture.TextureFilter.MipMapLinearNearest, Texture.TextureFilter.Linear);
-		} else {
-			bmpFont = DefaultResources.getIncludedFont();
-			Gdx.app.error("TextCellFactory", "Could not find font file: " + texturePath + ", using defaults");
-			return this;
-		}
-		if (Gdx.files.internal(fontPath).exists()) {
-			Gdx.app.debug("font", "Using internal font at " + fontPath);
-			bmpFont = new BitmapFont(Gdx.files.internal(fontPath), new TextureRegion(tex), false);
-			distanceField = true;
-		} else if (Gdx.files.classpath(fontPath).exists()) {
-			Gdx.app.debug("font", "Using classpath font at " + fontPath);
-			bmpFont = new BitmapFont(Gdx.files.classpath(fontPath), new TextureRegion(tex), false);
-			distanceField = true;
-		} else {
-			bmpFont = DefaultResources.getIncludedFont();
-			Gdx.app.error("TextCellFactory", "Could not find font file: " + fontPath + ", using defaults");
-		}
-		// bmpFont.getData().padBottom = bmpFont.getDescent();
-		distanceFieldScaleX = bmpFont.getSpaceWidth() - 1f;
-		distanceFieldScaleY = bmpFont.getLineHeight() - 1f;
-		return this;
-	}
-
-	/**
-	 * Sets this factory to use the one font included with libGDX, which is Arial at
-	 * size 15 px. Does it correctly display when used in a grid? Probably not as
-	 * well as you'd hope. You should probably get some of the assets that accompany
-	 * SquidLib, and can be downloaded directly from GitHub (not available as one
-	 * monolithic jar via Maven Central, but that lets you pick and choose
-	 * individual assets). Get a .fnt and its matching .png file from
-	 * https://github.com/SquidPony/SquidLib/tree/master/assets and you can pass
-	 * them to {@link #font(String)} or {@link #fontDistanceField(String, String)}.
-	 *
-	 * @return this factory for method chaining
-	 */
-	public TextCellFactory includedFont() {
-		bmpFont = DefaultResources.getIncludedFont();
-		return this;
-	}
-
-	/**
-	 * Sets this factory to use a default 12x24 font that supports Latin, Greek,
-	 * Cyrillic, and many more, including box-drawing characters, zodiac signs,
-	 * playing-card suits, and chess piece symbols. This is enough to support the
-	 * output of anything that DungeonUtility can make for a dungeon or
-	 * FakeLanguageGen can make for text with its defaults, which is difficult for
-	 * any font to do. The box-drawing characters in this don't quite line up, and
-	 * in some colors there may appear to be gaps (white text on black backgrounds
-	 * will show it, but not much else).
-	 *
-	 * This is a way to complete a needed step; the font must be set before
-	 * initializing, which can be done by a few methods in this class.
-	 *
-	 * @return this factory for method chaining
-	 */
-	public TextCellFactory defaultFont() {
-		bmpFont = DefaultResources.getLargeSmoothFont();
-		return this;
-	}
-
-	/**
-	 * Sets this factory to use a default 12x24 font that renders very accurately,
-	 * with no gaps between box-drawing characters and very geometric lines.
-	 *
-	 * This is a way to complete a needed step; the font must be set before
-	 * initializing, which can be done by a few methods in this class.
-	 *
-	 * @return this factory for method chaining
-	 */
-	public TextCellFactory defaultNarrowFont() {
-		bmpFont = DefaultResources.getLargeNarrowFont();
-		return this;
-	}
-
-	/**
-	 * Sets this factory to use a default 12x12 font, which... is square, and
-	 * doesn't look as bad as many square fonts do, plus it supports box-drawing
-	 * characters with no gaps.
-	 *
-	 * This is a way to complete a needed step; the font must be set before
-	 * initializing, which can be done by a few methods in this class.
-	 *
-	 * @return this factory for method chaining
-	 */
-	public TextCellFactory defaultSquareFont() {
-		bmpFont = DefaultResources.getDefaultFont();
-		return this;
-	}
-
-	/**
-	 * Sets the TextCellFactory to use a square distance field font that will resize
-	 * to whatever size you request. You must configure the shader if you use a
-	 * distance field font, unless a class does it for you, like SquidLayers. The
-	 * configureShader(Batch) method of this class can be used to set up the shader
-	 * if you don't use SquidLayers; see its docs for more information.
-	 * 
-	 * @return this TextCellFactory set to use a square distance field font
-	 */
-	public TextCellFactory defaultDistanceFieldFont() {
-		fontDistanceField(DefaultResources.distanceFieldSquare, DefaultResources.distanceFieldSquareTexture);
-		return this;
-	}
-
-	/**
-	 * Sets the TextCellFactory to use a half-square distance field font that will
-	 * resize to whatever size you request. You must configure the shader if you use
-	 * a distance field font, unless a class does it for you, like SquidLayers. The
-	 * configureShader(Batch) method of this class can be used to set up the shader
-	 * if you don't use SquidLayers; see its docs for more information.
-	 * 
-	 * @return this TextCellFactory set to use a half-square distance field font
-	 */
-	public TextCellFactory defaultNarrowDistanceFieldFont() {
-		fontDistanceField(DefaultResources.distanceFieldNarrow, DefaultResources.distanceFieldNarrowTexture);
-		return this;
 	}
 
 	/**
@@ -1334,18 +948,6 @@ public class TextCellFactory implements Disposable {
 			throw new IllegalStateException("This factory has not yet been initialized!");
 		}
 		return block;
-	}
-
-	public boolean isDistanceField() {
-		return distanceField;
-	}
-
-	public float getDistanceFieldScaleX() {
-		return distanceFieldScaleX;
-	}
-
-	public float getDistanceFieldScaleY() {
-		return distanceFieldScaleY;
 	}
 
 	/**

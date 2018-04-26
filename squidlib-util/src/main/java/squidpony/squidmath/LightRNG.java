@@ -36,7 +36,7 @@ package squidpony.squidmath;
  * @author Sebastiano Vigna
  * @author Tommy Ettinger
  */
-public class LightRNG implements RandomnessSource, StatefulRandomness
+public class LightRNG implements RandomnessSource
 {
 	/** 2 raised to the 53, - 1. */
     private static final long DOUBLE_MASK = ( 1L << 53 ) - 1;
@@ -203,22 +203,6 @@ public class LightRNG implements RandomnessSource, StatefulRandomness
      */
     public void setSeed( final long seed ) {
         state = seed;
-    }
-    /**
-     * Sets the seed (also the current state) of this generator.
-     * @param seed the seed to use for this LightRNG, as if it was constructed with this seed.
-     */
-    @Override
-    public void setState( final long seed ) {
-        state = seed;
-    }
-    /**
-     * Gets the current state of this generator.
-     * @return the current seed of this LightRNG, changed once per call to nextLong()
-     */
-    @Override
-    public long getState() {
-        return state;
     }
 
     /**
