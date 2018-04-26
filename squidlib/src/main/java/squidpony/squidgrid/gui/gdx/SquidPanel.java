@@ -31,30 +31,15 @@ import squidpony.squidmath.OrderedSet;
  */
 public class SquidPanel extends Group implements ISquidPanel<Color> {
 
-	public float DEFAULT_ANIMATION_DURATION = 0.12F;
 	protected int animationCount = 0;
 	protected final int cellWidth, cellHeight;
 	protected int gridWidth, gridHeight, gridOffsetX = 0, gridOffsetY = 0;
 	protected final String[][] contents;
 	protected final Color[][] colors;
-	protected Color lightingColor = Color.WHITE;
 	protected final TextCellFactory textFactory;
 	protected float xOffset, yOffset;
 	private final OrderedSet<AnimatedEntity> animatedEntities;
-	/**
-	 * For thin-wall maps, where only cells where x and y are both even numbers have
-	 * backgrounds displayed. Should be false when using this SquidPanel for
-	 * anything that isn't specifically a background of a map that uses the
-	 * thin-wall method from ThinDungeonGenerator or something similar. Even the
-	 * foregrounds of thin-wall maps should have this false, since
-	 * ThinDungeonGenerator (in conjunction with DungeonUtility's hashesToLines
-	 * method) makes thin lines for walls that should be displayed as between the
-	 * boundaries of other cells. The overlap behavior needed for some "thin enough"
-	 * cells to be displayed between the cells can be accomplished by using
-	 * {@link #setTextSize(int, int)} to double the previously-given cell width and
-	 * height.
-	 */
-	private boolean onlyRenderEven = false;
+	public static final float DEFAULT_ANIMATION_DURATION = 0.12F;
 
 	/**
 	 * Builds a panel with the given grid size and all other parameters determined
@@ -102,205 +87,6 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 		animatedEntities = new OrderedSet<>();
 	}
 
-	@Override
-	public void put(/* @Nullable */char[][] chars, Color[][] foregrounds) {
-		if (chars == null) {
-			/* Only colors to put */
-			final int width = foregrounds.length;
-			final int height = width == 0 ? 0 : foregrounds[0].length;
-			for (int x = 0; x < width; x++) {
-				for (int y = 0; y < height; y++)
-					put(x, y, foregrounds[x][y]);
-			}
-		} else
-			put(0, 0, chars, foregrounds);
-	}
-
-	public void put(int xOffset, int yOffset, char[][] chars, Color[][] foregrounds) {
-		for (int x = xOffset; x < xOffset + chars.length; x++) {
-			for (int y = yOffset; y < yOffset + chars[0].length; y++) {
-				if (x >= 0 && y >= 0 && x < gridWidth && y < gridHeight) {// check for valid input
-					put(x, y, chars[x - xOffset][y - yOffset], foregrounds[x - xOffset][y - yOffset]);
-				}
-			}
-		}
-	}
-
-	@Override
-	public void clear(int x, int y) {
-		put(x, y, Color.CLEAR);
-	}
-
-	@Override
-	public void put(int x, int y, Color color) {
-		put(x, y, '\0', color);
-	}
-
-	/**
-	 * Takes a unicode char for input.
-	 *
-	 * @param x
-	 * @param y
-	 * @param c
-	 * @param color
-	 */
-	@Override
-	public void put(int x, int y, char c, Color color) {
-		if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) {
-			return;// skip if out of bounds
-		}
-		contents[x][y] = String.valueOf(c);
-		colors[x][y] = color; // scc.filter(color);
-	}
-
-	@Override
-	public int cellWidth() {
-		return cellWidth;
-	}
-
-	@Override
-	public int cellHeight() {
-		return cellHeight;
-	}
-
-	@Override
-	public int gridHeight() {
-		return gridHeight;
-	}
-
-	@Override
-	public int gridWidth() {
-		return gridWidth;
-	}
-
-	/**
-	 * @return The {@link TextCellFactory} backing {@code this}.
-	 */
-	public TextCellFactory getTextCellFactory() {
-		return textFactory;
-	}
-
-	@Override
-	public void draw(Batch batch, float parentAlpha) {
-		textFactory.configureShader(batch);
-		Color tmp;
-		int inc = onlyRenderEven ? 2 : 1;
-		for (int x = gridOffsetX; x < gridWidth; x += inc) {
-			for (int y = gridOffsetY; y < gridHeight; y += inc) {
-				tmp = colors[x][y];
-				textFactory.draw(batch, contents[x][y], tmp, xOffset + /*- getX() + 1f * */ x * cellWidth,
-						yOffset + /*- getY() + 1f * */ (gridHeight - y) * cellHeight + 1f);
-			}
-		}
-		super.draw(batch, parentAlpha);
-		for (AnimatedEntity ae : animatedEntities) {
-			ae.actor.act(Gdx.graphics.getDeltaTime());
-		}
-	}
-
-	/**
-	 * Draws one AnimatedEntity, specifically the Actor it contains. Batch must be
-	 * between start() and end()
-	 * 
-	 * @param batch
-	 *            Must have start() called already but not stop() yet during this
-	 *            frame.
-	 * @param parentAlpha
-	 *            This can be assumed to be 1.0f if you don't know it
-	 * @param ae
-	 *            The AnimatedEntity to draw; the position to draw ae is stored
-	 *            inside it.
-	 */
-	public void drawActor(Batch batch, float parentAlpha, AnimatedEntity ae) {
-		ae.actor.draw(batch, parentAlpha);
-	}
-
-	public AnimatedEntity getAnimatedEntityByCell(int x, int y) {
-		for (AnimatedEntity ae : animatedEntities) {
-			if (ae.gridX == x && ae.gridY == y)
-				return ae;
-		}
-		return null;
-	}
-
-	/**
-	 * Created an Actor from the contents of the given x,y position on the grid.
-	 * 
-	 * @param x
-	 * @param y
-	 * @return
-	 */
-	public Actor cellToActor(int x, int y) {
-		return cellToActor(x, y, false);
-	}
-
-	/**
-	 * Created an Actor from the contents of the given x,y position on the grid;
-	 * deleting the grid's String content at this cell.
-	 * 
-	 * @param x
-	 * @param y
-	 * @param doubleWidth
-	 * @return A fresh {@link Actor}, that has just been added to {@code this}.
-	 */
-	public Actor cellToActor(int x, int y, boolean doubleWidth) {
-		return createActor(x, y, contents[x][y], colors[x][y], doubleWidth);
-	}
-
-	protected /* @Nullable */ Actor createActor(int x, int y, String name, Color color, boolean doubleWidth) {
-		if (name == null || name.isEmpty())
-			return null;
-		else {
-			final Actor a = textFactory.makeActor(name, color);
-			a.setName(name);
-			a.setPosition(adjustX(x, doubleWidth) - getX() * 2, adjustY(y) - getY() * 2);
-			addActor(a);
-			return a;
-		}
-	}
-
-	public float adjustX(float x, boolean doubleWidth) {
-		if (doubleWidth)
-			return x * 2 * cellWidth + getX();
-		else
-			return x * cellWidth + getX();
-	}
-
-	public float adjustY(float y) {
-		return (gridHeight - y - 1) * cellHeight + getY() + 1; // - textFactory.lineHeight //textFactory.lineTweak * 3f
-		// return (gridHeight - y - 1) * cellHeight + textFactory.getDescent() * 3 / 2f
-		// + getY();
-	}
-
-	/*
-	 * public void startAnimation(Actor a, int oldX, int oldY) { Coord tmp =
-	 * Coord.get(oldX, oldY);
-	 * 
-	 * tmp.x = Math.round(a.getX() / cellWidth); tmp.y = gridHeight -
-	 * Math.round(a.getY() / cellHeight) - 1; if(tmp.x >= 0 && tmp.x < gridWidth &&
-	 * tmp.y > 0 && tmp.y < gridHeight) { } }
-	 */
-	public void recallActor(Actor a, boolean restoreSym) {
-		animationCount--;
-		int x = Math.round((a.getX() - getX()) / cellWidth), y = gridHeight - (int) (a.getY() / cellHeight) - 1;
-		// y = gridHeight - (int)((a.getY() - getY()) / cellHeight) - 1;
-		if (x < 0 || y < 0 || x >= contents.length || y >= contents[x].length)
-			return;
-		if (restoreSym)
-			contents[x][y] = a.getName();
-		removeActor(a);
-	}
-
-	public void recallActor(AnimatedEntity ae) {
-		if (ae.doubleWidth)
-			ae.gridX = Math.round((ae.actor.getX() - getX()) / (2 * cellWidth));
-		else
-			ae.gridX = Math.round((ae.actor.getX() - getX()) / cellWidth);
-		ae.gridY = gridHeight - (int) ((ae.actor.getY() - getY()) / cellHeight) - 1;
-		ae.animating = false;
-		animationCount--;
-	}
-
 	/**
 	 * Start a bumping animation in the given direction that will last duration
 	 * seconds.
@@ -333,6 +119,27 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 					}
 				}))));
 
+	}
+
+	/**
+	 * Starts a bumping animation in the direction provided.
+	 *
+	 * @param location
+	 * @param direction
+	 */
+	public void bump(Coord location, Direction direction) {
+		bump(location.x, location.y, direction, DEFAULT_ANIMATION_DURATION);
+	}
+
+	/**
+	 * Starts a bumping animation in the direction provided.
+	 *
+	 * @param x
+	 * @param y
+	 * @param direction
+	 */
+	public void bump(int x, int y, Direction direction) {
+		bump(x, y, direction, DEFAULT_ANIMATION_DURATION);
 	}
 
 	/**
@@ -370,25 +177,162 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 
 	}
 
-	/**
-	 * Starts a bumping animation in the direction provided.
-	 *
-	 * @param x
-	 * @param y
-	 * @param direction
-	 */
-	public void bump(int x, int y, Direction direction) {
-		bump(x, y, direction, DEFAULT_ANIMATION_DURATION);
+	@Override
+	public int cellHeight() {
+		return cellHeight;
+	}
+
+	@Override
+	public int cellWidth() {
+		return cellWidth;
+	}
+
+	@Override
+	public void draw(Batch batch, float parentAlpha) {
+		textFactory.configureShader(batch);
+		Color tmp;
+		for (int x = gridOffsetX; x < gridWidth; x++) {
+			for (int y = gridOffsetY; y < gridHeight; y++) {
+				tmp = colors[x][y];
+				textFactory.draw(batch, contents[x][y], tmp, xOffset + /*- getX() + 1f * */ x * cellWidth,
+						yOffset + /*- getY() + 1f * */ (gridHeight - y) * cellHeight + 1f);
+			}
+		}
+		super.draw(batch, parentAlpha);
+		for (AnimatedEntity ae : animatedEntities) {
+			ae.actor.act(Gdx.graphics.getDeltaTime());
+		}
 	}
 
 	/**
-	 * Starts a bumping animation in the direction provided.
-	 *
-	 * @param location
-	 * @param direction
+	 * Draws one AnimatedEntity, specifically the Actor it contains. Batch must be
+	 * between start() and end()
+	 * 
+	 * @param batch
+	 *            Must have start() called already but not stop() yet during this
+	 *            frame.
+	 * @param parentAlpha
+	 *            This can be assumed to be 1.0f if you don't know it
+	 * @param ae
+	 *            The AnimatedEntity to draw; the position to draw ae is stored
+	 *            inside it.
 	 */
-	public void bump(Coord location, Direction direction) {
-		bump(location.x, location.y, direction, DEFAULT_ANIMATION_DURATION);
+	public void drawActor(Batch batch, float parentAlpha, AnimatedEntity ae) {
+		ae.actor.draw(batch, parentAlpha);
+	}
+
+	/**
+	 * Fade the cell at {@code (x,y)} to {@code color}. Contrary to
+	 * {@link #tint(int, int, Color, float)}, this action does not restore the
+	 * cell's color at the end of its execution. This is for example useful to fade
+	 * the game screen when the rogue dies.
+	 *
+	 * @param x
+	 *            the x-coordinate of the cell to tint
+	 * @param y
+	 *            the y-coordinate of the cell to tint
+	 * @param color
+	 *            The color at the end of the fadeout.
+	 * @param duration
+	 *            The fadeout's duration.
+	 */
+	public void fade(int x, int y, Color color, float duration) {
+		final Actor a = cellToActor(x, y);
+		if (a == null)
+			return;
+		duration = clampDuration(duration);
+		animationCount++;
+		final Color c = color;
+		a.addAction(Actions.sequence(Actions.color(c, duration), Actions.run(new Runnable() {
+			@Override
+			public void run() {
+				recallActor(a, true);
+			}
+		})));
+	}
+
+	/**
+	 * @return The {@link TextCellFactory} backing {@code this}.
+	 */
+	public TextCellFactory getTextCellFactory() {
+		return textFactory;
+	}
+
+	@Override
+	public int gridHeight() {
+		return gridHeight;
+	}
+
+	@Override
+	public int gridWidth() {
+		return gridWidth;
+	}
+
+	@Override
+	public boolean hasActiveAnimations() {
+		// return animationCount != 0;
+		if (0 < animationCount)
+			return true;
+		else
+			return 0 < getActions().size;
+	}
+
+	@Override
+	public void put(/* @Nullable */char[][] chars, Color[][] foregrounds) {
+		if (chars == null) {
+			/* Only colors to put */
+			final int width = foregrounds.length;
+			final int height = width == 0 ? 0 : foregrounds[0].length;
+			for (int x = 0; x < width; x++) {
+				for (int y = 0; y < height; y++)
+					put(x, y, foregrounds[x][y]);
+			}
+		} else
+			put(0, 0, chars, foregrounds);
+	}
+
+	/**
+	 * Takes a unicode char for input.
+	 *
+	 * @param x
+	 * @param y
+	 * @param c
+	 * @param color
+	 */
+	@Override
+	public void put(int x, int y, char c, Color color) {
+		if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) {
+			return;// skip if out of bounds
+		}
+		contents[x][y] = String.valueOf(c);
+		colors[x][y] = color; // scc.filter(color);
+	}
+
+	public void put(int xOffset, int yOffset, char[][] chars, Color[][] foregrounds) {
+		for (int x = xOffset; x < xOffset + chars.length; x++) {
+			for (int y = yOffset; y < yOffset + chars[0].length; y++) {
+				if (x >= 0 && y >= 0 && x < gridWidth && y < gridHeight) {// check for valid input
+					put(x, y, chars[x - xOffset][y - yOffset], foregrounds[x - xOffset][y - yOffset]);
+				}
+			}
+		}
+	}
+
+	@Override
+	public void put(int x, int y, Color color) {
+		put(x, y, '\0', color);
+	}
+
+	/**
+	 * Sets the position of the actor's bottom left corner.
+	 *
+	 * @param x
+	 * @param y
+	 */
+	@Override
+	public void setPosition(float x, float y) {
+		super.setPosition(x, y);
+		setBounds(x, y, getWidth(), getHeight());
 	}
 
 	/**
@@ -419,6 +363,45 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 						recallActor(ae);
 					}
 				}))));
+	}
+
+	/**
+	 * Starts a movement animation for the object at the given grid location at the
+	 * default speed.
+	 *
+	 * @param start
+	 *            Coord to pick up a tile from and slide
+	 * @param end
+	 *            Coord to end the slide on
+	 */
+	public void slide(Coord start, Coord end) {
+		slide(start.x, start.y, end.x, end.y, DEFAULT_ANIMATION_DURATION);
+	}
+
+	/**
+	 * Starts a sliding movement animation for the object at the given location at
+	 * the provided speed. The duration is how many seconds should pass for the
+	 * entire animation.
+	 *
+	 * @param start
+	 * @param end
+	 * @param duration
+	 */
+	public void slide(Coord start, Coord end, float duration) {
+		slide(start.x, start.y, end.x, end.y, duration);
+	}
+
+	/**
+	 * Starts a movement animation for the object at the given grid location at the
+	 * default speed for one grid square in the direction provided.
+	 *
+	 * @param start
+	 *            Coord to pick up a tile from and slide
+	 * @param direction
+	 *            Direction enum that indicates which way the slide should go
+	 */
+	public void slide(Coord start, Direction direction) {
+		slide(start.x, start.y, start.x + direction.deltaX, start.y + direction.deltaY, DEFAULT_ANIMATION_DURATION);
 	}
 
 	/**
@@ -542,45 +525,6 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 	}
 
 	/**
-	 * Starts a movement animation for the object at the given grid location at the
-	 * default speed.
-	 *
-	 * @param start
-	 *            Coord to pick up a tile from and slide
-	 * @param end
-	 *            Coord to end the slide on
-	 */
-	public void slide(Coord start, Coord end) {
-		slide(start.x, start.y, end.x, end.y, DEFAULT_ANIMATION_DURATION);
-	}
-
-	/**
-	 * Starts a movement animation for the object at the given grid location at the
-	 * default speed for one grid square in the direction provided.
-	 *
-	 * @param start
-	 *            Coord to pick up a tile from and slide
-	 * @param direction
-	 *            Direction enum that indicates which way the slide should go
-	 */
-	public void slide(Coord start, Direction direction) {
-		slide(start.x, start.y, start.x + direction.deltaX, start.y + direction.deltaY, DEFAULT_ANIMATION_DURATION);
-	}
-
-	/**
-	 * Starts a sliding movement animation for the object at the given location at
-	 * the provided speed. The duration is how many seconds should pass for the
-	 * entire animation.
-	 *
-	 * @param start
-	 * @param end
-	 * @param duration
-	 */
-	public void slide(Coord start, Coord end, float duration) {
-		slide(start.x, start.y, end.x, end.y, duration);
-	}
-
-	/**
 	 * Starts a tint animation for {@code ae} for the given {@code duration} in
 	 * seconds.
 	 *
@@ -701,65 +645,6 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 		tint(0f, x, y, color, duration);
 	}
 
-	/**
-	 * Fade the cell at {@code (x,y)} to {@code color}. Contrary to
-	 * {@link #tint(int, int, Color, float)}, this action does not restore the
-	 * cell's color at the end of its execution. This is for example useful to fade
-	 * the game screen when the rogue dies.
-	 *
-	 * @param x
-	 *            the x-coordinate of the cell to tint
-	 * @param y
-	 *            the y-coordinate of the cell to tint
-	 * @param color
-	 *            The color at the end of the fadeout.
-	 * @param duration
-	 *            The fadeout's duration.
-	 */
-	public void fade(int x, int y, Color color, float duration) {
-		final Actor a = cellToActor(x, y);
-		if (a == null)
-			return;
-		duration = clampDuration(duration);
-		animationCount++;
-		final Color c = color;
-		a.addAction(Actions.sequence(Actions.color(c, duration), Actions.run(new Runnable() {
-			@Override
-			public void run() {
-				recallActor(a, true);
-			}
-		})));
-	}
-
-	@Override
-	public boolean hasActiveAnimations() {
-		// return animationCount != 0;
-		if (0 < animationCount)
-			return true;
-		else
-			return 0 < getActions().size;
-	}
-
-	public OrderedSet<AnimatedEntity> getAnimatedEntities() {
-		return animatedEntities;
-	}
-
-	public void removeAnimatedEntity(AnimatedEntity ae) {
-		animatedEntities.remove(ae);
-	}
-
-	public Color getColorAt(int x, int y) {
-		return colors[x][y];
-	}
-
-	public Color getLightingColor() {
-		return lightingColor;
-	}
-
-	public void setLightingColor(Color lightingColor) {
-		this.lightingColor = lightingColor;
-	}
-
 	protected float clampDuration(float duration) {
 		if (duration < 0.02f)
 			return 0.02f;
@@ -767,119 +652,71 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 			return duration;
 	}
 
-	/**
-	 * The X offset that the whole panel's internals will be rendered at.
-	 * 
-	 * @return the current offset in cells along the x axis
-	 */
-	public int getGridOffsetX() {
-		return gridOffsetX;
+	protected /* @Nullable */ Actor createActor(int x, int y, String name, Color color, boolean doubleWidth) {
+		if (name == null || name.isEmpty())
+			return null;
+		else {
+			final Actor a = textFactory.makeActor(name, color);
+			a.setName(name);
+			a.setPosition(adjustX(x, doubleWidth) - getX() * 2, adjustY(y) - getY() * 2);
+			addActor(a);
+			return a;
+		}
+	}
+
+	private float adjustX(float x, boolean doubleWidth) {
+		if (doubleWidth)
+			return x * 2 * cellWidth + getX();
+		else
+			return x * cellWidth + getX();
+	}
+
+	private float adjustY(float y) {
+		return (gridHeight - y - 1) * cellHeight + getY() + 1;
 	}
 
 	/**
-	 * Sets the X offset that the whole panel's internals will be rendered at.
+	 * Created an Actor from the contents of the given x,y position on the grid.
 	 * 
-	 * @param gridOffsetX
-	 *            the requested offset in cells; should be less than gridWidth
-	 */
-	public void setGridOffsetX(int gridOffsetX) {
-		if (gridOffsetX < gridWidth)
-			this.gridOffsetX = gridOffsetX;
-	}
-
-	/**
-	 * The Y offset that the whole panel's internals will be rendered at.
-	 * 
-	 * @return the current offset in cells along the y axis
-	 */
-	public int getGridOffsetY() {
-		return gridOffsetY;
-	}
-
-	/**
-	 * Sets the Y offset that the whole panel's internals will be rendered at.
-	 * 
-	 * @param gridOffsetY
-	 *            the requested offset in cells; should be less than gridHeight
-	 */
-	public void setGridOffsetY(int gridOffsetY) {
-		if (gridOffsetY < gridHeight)
-			this.gridOffsetY = gridOffsetY;
-
-	}
-
-	/**
-	 * The number of cells along the x-axis that will be rendered of this panel.
-	 * 
-	 * @return the number of cells along the x-axis that will be rendered of this
-	 *         panel
-	 */
-	public int getGridWidth() {
-		return gridWidth;
-	}
-
-	/**
-	 * Sets the number of cells along the x-axis that will be rendered of this panel
-	 * to gridWidth.
-	 * 
-	 * @param gridWidth
-	 *            the requested width in cells
-	 */
-	public void setGridWidth(int gridWidth) {
-		this.gridWidth = gridWidth;
-	}
-
-	/**
-	 * The number of cells along the y-axis that will be rendered of this panel
-	 * 
-	 * @return the number of cells along the y-axis that will be rendered of this
-	 *         panel
-	 */
-	public int getGridHeight() {
-		return gridHeight;
-	}
-
-	/**
-	 * Sets the number of cells along the y-axis that will be rendered of this panel
-	 * to gridHeight.
-	 * 
-	 * @param gridHeight
-	 *            the requested height in cells
-	 */
-	public void setGridHeight(int gridHeight) {
-		this.gridHeight = gridHeight;
-	}
-
-	/**
-	 * Sets the position of the actor's bottom left corner.
-	 *
 	 * @param x
 	 * @param y
+	 * @return
 	 */
-	@Override
-	public void setPosition(float x, float y) {
-		super.setPosition(x, y);
-		setBounds(x, y, getWidth(), getHeight());
+	private Actor cellToActor(int x, int y) {
+		return cellToActor(x, y, false);
 	}
 
-	public float getxOffset() {
-		return xOffset;
+	/**
+	 * Created an Actor from the contents of the given x,y position on the grid;
+	 * deleting the grid's String content at this cell.
+	 * 
+	 * @param x
+	 * @param y
+	 * @param doubleWidth
+	 * @return A fresh {@link Actor}, that has just been added to {@code this}.
+	 */
+	private Actor cellToActor(int x, int y, boolean doubleWidth) {
+		return createActor(x, y, contents[x][y], colors[x][y], doubleWidth);
 	}
 
-	public void setOffsetX(float xOffset) {
-		this.xOffset = xOffset;
+	private void recallActor(Actor a, boolean restoreSym) {
+		animationCount--;
+		int x = Math.round((a.getX() - getX()) / cellWidth), y = gridHeight - (int) (a.getY() / cellHeight) - 1;
+		// y = gridHeight - (int)((a.getY() - getY()) / cellHeight) - 1;
+		if (x < 0 || y < 0 || x >= contents.length || y >= contents[x].length)
+			return;
+		if (restoreSym)
+			contents[x][y] = a.getName();
+		removeActor(a);
 	}
 
-	public float getyOffset() {
-		return yOffset;
-	}
-
-	public void setOffsetY(float yOffset) {
-		this.yOffset = yOffset;
-	}
-
-	public void setOffsets(float x, float y) {
-		xOffset = x;
-		yOffset = y;
+	private void recallActor(AnimatedEntity ae) {
+		if (ae.doubleWidth)
+			ae.gridX = Math.round((ae.actor.getX() - getX()) / (2 * cellWidth));
+		else
+			ae.gridX = Math.round((ae.actor.getX() - getX()) / cellWidth);
+		ae.gridY = gridHeight - (int) ((ae.actor.getY() - getY()) / cellHeight) - 1;
+		ae.animating = false;
+		animationCount--;
 	}
 }

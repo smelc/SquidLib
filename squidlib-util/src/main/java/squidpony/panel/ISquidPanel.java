@@ -40,14 +40,6 @@ public interface ISquidPanel<T> {
 	void put(/* @Nullable */ char[][] foregrounds, T[][] colors);
 
 	/**
-	 * Removes the contents of this cell, leaving a transparent space.
-	 *
-	 * @param x
-	 * @param y
-	 */
-	void clear(int x, int y);
-
-	/**
 	 * @return The number of cells that this panel spans, horizontally.
 	 */
 	int gridWidth();
