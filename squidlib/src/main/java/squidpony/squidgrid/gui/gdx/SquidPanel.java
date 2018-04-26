@@ -29,7 +29,7 @@ import squidpony.squidmath.OrderedSet;
  *
  * @author Eben Howard - http://squidpony.com - howard@squidpony.com
  */
-public class SquidPanel extends Group implements ISquidPanel<Color> {
+public final class SquidPanel extends Group implements ISquidPanel<Color> {
 
 	protected int animationCount = 0;
 	protected final int cellWidth, cellHeight;
