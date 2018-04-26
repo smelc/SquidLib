@@ -13,15 +13,6 @@ package squidpony.panel;
 public interface ISquidPanel<T> {
 
 	/**
-	 * Puts the character {@code c} at {@code (x, y)}.
-	 * 
-	 * @param x
-	 * @param y
-	 * @param c
-	 */
-	void put(int x, int y, char c);
-
-	/**
 	 * Puts {@code color} at {@code (x, y)} (in the cell's entirety, i.e. in the
 	 * background).
 	 * 
@@ -81,19 +72,5 @@ public interface ISquidPanel<T> {
 	 *         called.
 	 */
 	boolean hasActiveAnimations();
-
-	/**
-	 * Sets the default foreground color.
-	 * 
-	 * @param color
-	 */
-	void setDefaultForeground(T color);
-
-	/**
-	 * @return The default foreground color (if none was set with
-	 *         {@link #setDefaultForeground(Object)}), or the last color set with
-	 *         {@link #setDefaultForeground(Object)}. Cannot be {@code null}.
-	 */
-	T getDefaultForegroundColor();
 
 }

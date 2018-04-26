@@ -1,6 +1,5 @@
 package squidpony.squidgrid.gui.gdx;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import com.badlogic.gdx.Gdx;
@@ -34,7 +33,6 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 
 	public float DEFAULT_ANIMATION_DURATION = 0.12F;
 	protected int animationCount = 0;
-	protected Color defaultForeground = Color.WHITE;
 	protected final int cellWidth, cellHeight;
 	protected int gridWidth, gridHeight, gridOffsetX = 0, gridOffsetY = 0;
 	protected final String[][] contents;
@@ -104,15 +102,6 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 		animatedEntities = new OrderedSet<>();
 	}
 
-	/**
-	 * Places the given characters into the grid starting at 0,0.
-	 *
-	 * @param chars
-	 */
-	public void put(char[][] chars) {
-		put(0, 0, chars);
-	}
-
 	@Override
 	public void put(/* @Nullable */char[][] chars, Color[][] foregrounds) {
 		if (chars == null) {
@@ -127,10 +116,6 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 			put(0, 0, chars, foregrounds);
 	}
 
-	public void put(int xOffset, int yOffset, char[][] chars) {
-		put(xOffset, yOffset, chars, defaultForeground);
-	}
-
 	public void put(int xOffset, int yOffset, char[][] chars, Color[][] foregrounds) {
 		for (int x = xOffset; x < xOffset + chars.length; x++) {
 			for (int y = yOffset; y < yOffset + chars[0].length; y++) {
@@ -138,50 +123,6 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 					put(x, y, chars[x - xOffset][y - yOffset], foregrounds[x - xOffset][y - yOffset]);
 				}
 			}
-		}
-	}
-
-	public void put(int xOffset, int yOffset, Color[][] foregrounds) {
-		for (int x = xOffset; x < xOffset + foregrounds.length; x++) {
-			for (int y = yOffset; y < yOffset + foregrounds[0].length; y++) {
-				if (x >= 0 && y >= 0 && x < gridWidth && y < gridHeight) {// check for valid input
-					put(x, y, '\0', foregrounds[x - xOffset][y - yOffset]);
-				}
-			}
-		}
-	}
-
-	public void put(int xOffset, int yOffset, int[][] indices, ArrayList<Color> palette) {
-		for (int x = xOffset; x < xOffset + indices.length; x++) {
-			for (int y = yOffset; y < yOffset + indices[0].length; y++) {
-				if (x >= 0 && y >= 0 && x < gridWidth && y < gridHeight) {// check for valid input
-					put(x, y, '\0', palette.get(indices[x - xOffset][y - yOffset]));
-				}
-			}
-		}
-	}
-
-	public void put(int xOffset, int yOffset, char[][] chars, Color foreground) {
-		for (int x = xOffset; x < xOffset + chars.length; x++) {
-			for (int y = yOffset; y < yOffset + chars[0].length; y++) {
-				if (x >= 0 && y >= 0 && x < gridWidth && y < gridHeight) {// check for valid input
-					put(x, y, chars[x - xOffset][y - yOffset], foreground);
-				}
-			}
-		}
-	}
-
-	/**
-	 * Erases the entire panel, leaving only a transparent space.
-	 */
-	public void erase() {
-		for (int i = 0; i < contents.length; i++) {
-			Arrays.fill(contents[i], "\0");
-			Arrays.fill(colors[i], Color.CLEAR);
-			/*
-			 * for (int j = 0; j < contents[i].length; j++) { contents[i][j] = "\0";
-			 * colors[i][j] = Color.CLEAR; }
-			 */
 		}
 	}
 
@@ -193,11 +134,6 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 	@Override
 	public void put(int x, int y, Color color) {
 		put(x, y, '\0', color);
-	}
-
-	@Override
-	public void put(int x, int y, char c) {
-		put(x, y, c, defaultForeground);
 	}
 
 	/**
@@ -277,16 +213,6 @@ public class SquidPanel extends Group implements ISquidPanel<Color> {
 	 */
 	public void drawActor(Batch batch, float parentAlpha, AnimatedEntity ae) {
 		ae.actor.draw(batch, parentAlpha);
-	}
-
-	@Override
-	public void setDefaultForeground(Color defaultForeground) {
-		this.defaultForeground = defaultForeground;
-	}
-
-	@Override
-	public Color getDefaultForegroundColor() {
-		return defaultForeground;
 	}
 
 	public AnimatedEntity getAnimatedEntityByCell(int x, int y) {
