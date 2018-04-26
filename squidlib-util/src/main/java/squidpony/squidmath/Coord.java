@@ -345,6 +345,11 @@ public class Coord implements Serializable {
 		return (co.x - x) * (co.x - x) + (co.y - y) * (co.y - y);
 	}
 
+	/** @return The coord in the middle of {@code this} and {@code other}. */
+	public Coord between(Coord other) {
+		return Coord.get((x + other.x) / 2, (y + other.y) / 2);
+	}
+
 	/**
 	 * @param c
 	 * @return Whether {@code this} is adjacent to {@code c}. Not that a cell is not

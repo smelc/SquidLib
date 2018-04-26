@@ -5,8 +5,6 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import squidpony.GwtCompatibility;
-import squidpony.squidai.AimLimit;
-import squidpony.squidai.Reach;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.Radius;
 
@@ -1795,32 +1793,6 @@ public class CoordPacker {
 			}
 		}
 		return packs;
-	}
-
-	/**
-	 * Quickly determines if a region is contained in one of the given packed
-	 * arrays, without unpacking them, and returns true if the region checking has
-	 * some overlap with any of the packed arrays, or false otherwise.
-	 * 
-	 * @param checking
-	 *            the packed data to check for overlap with the other regions
-	 * @param packed
-	 *            an array or vararg of short[], such as those returned by pack() or
-	 *            one of the sub-arrays in what is returned by packMulti(); null
-	 *            elements in packed will be skipped
-	 * @return true if checking overlaps with any of the packed arrays, or false
-	 *         otherwise
-	 */
-	public static boolean regionsContain(short[] checking, short[]... packed) {
-		OrderedSet<short[]> packs = new OrderedSet<>(packed.length, CrossHash.shortHasher);
-		for (int a = 0; a < packed.length; a++) {
-			if (packed[a] == null)
-				continue;
-			int total = 0;
-			if (intersects(checking, packed[a]))
-				return true;
-		}
-		return false;
 	}
 
 	/**
@@ -3696,135 +3668,6 @@ public class CoordPacker {
 	}
 
 	/**
-	 * Given a packed array encoding a larger area, a packed array encoding one or
-	 * more points inside bounds, and a Reach object that determines targeting
-	 * constraints, gets all cells contained within bounds that can be targeted from
-	 * a cell in start using the rules defined by reach. Though this is otherwise
-	 * similar to flood(), reachable() behaves like FOV and will not move around
-	 * obstacles and will instead avoid expanding if it would go into any cell that
-	 * cannot be reached by a straight line (drawn directly, not in grid steps) that
-	 * is mostly unobstructed. This does not behave quite like FOV if an AimLimit
-	 * has been set in reach to any value other than null or AimLimit.FREE; in these
-	 * cases it requires an exactly straight orthogonal or diagonal line without
-	 * obstructions, checking only cells along the precise path. For diagonals and
-	 * eight-way targeting, this means it can target through walls that only meet at
-	 * a perpendicular diagonal, such as an X shape where one line is a
-	 * one-cell-thick diagonal wall and the other is the targeting line. This is
-	 * normally only allowed in some games and only if they use Chebyshev
-	 * (Radius.SQUARE) distance, so be advised that it may not be desirable
-	 * behavior. Returns a new packed short[] and does not modify bounds or start.
-	 * 
-	 * @param bounds
-	 *            packed data representing the max extent of the region to check for
-	 *            reach-ability; often floors
-	 * @param start
-	 *            a packed array that encodes position(s) that the flood will spread
-	 *            outward from
-	 * @param reach
-	 *            a {@link Reach} object that determines minimum and maximum range,
-	 *            distance metric, and AimLimit
-	 * @return a packed array that encodes "on" for cells that are "on" in bounds
-	 *         and can be targeted from a cell in start using the given Reach
-	 */
-	public static short[] reachable(short[] bounds, short[] start, Reach reach) {
-		if (bounds == null || bounds.length <= 1) {
-			return ALL_WALL;
-		}
-		int boundSize = count(bounds);
-		ShortVLA vla = new ShortVLA(256), discard = new ShortVLA(128);
-		ShortSet storedSet = new ShortSet(boundSize), quickBounds = new ShortSet(boundSize);
-		boolean on = false;
-		int idx = 0, i;
-		short x, y;
-		for (int p = 0; p < bounds.length; p++, on = !on) {
-			if (on) {
-				for (i = idx; i < idx + (bounds[p] & 0xffff); i++) {
-					quickBounds.add((short) i);
-				}
-			}
-			idx += bounds[p] & 0xffff;
-		}
-		short[] s2 = allPackedHilbert(start);
-		if (reach.limit == null || reach.limit == AimLimit.FREE) {
-			for (int s = 0; s < s2.length; s++) {
-				i = s2[s] & 0xffff;
-				x = hilbertX[i];
-				y = hilbertY[i];
-				// add all cells at less than minimum distance to storedSet.
-				modifiedShadowFOV(reach.minDistance - 1, x, y, reach.metric, quickBounds, storedSet, discard);
-				discard.clear();
-				modifiedShadowFOV(reach.maxDistance, x, y, reach.metric, quickBounds, storedSet, vla);
-			}
-		} else {
-			for (int s = 0; s < s2.length; s++) {
-				i = s2[s] & 0xffff;
-				x = hilbertX[i];
-				y = hilbertY[i];
-				Direction[] dirs;
-				switch (reach.limit) {
-				case ORTHOGONAL:
-					dirs = Direction.CARDINALS;
-					break;
-				case DIAGONAL:
-					dirs = Direction.DIAGONALS;
-					break;
-				default:
-					dirs = Direction.OUTWARDS;
-				}
-				Direction dir;
-				DIRECTIONAL: for (int which = 0; which < dirs.length; which++) {
-					dir = dirs[which];
-					int d;
-					// add all cells at less than minimum distance to storedSet.
-					for (d = 1; d < reach.minDistance; d++) {
-						int extended = (x + dir.deltaX * d) + ((y + dir.deltaY * d) << 8);
-						if (extended < 0 || extended > 0xffff)
-							continue DIRECTIONAL;
-						short next = hilbertDistances[extended];
-						if (quickBounds.contains(next))
-							storedSet.add(next);
-						else
-							continue DIRECTIONAL;
-					}
-					for (; d <= reach.maxDistance; d++) {
-						int extended = (x + dir.deltaX * d) + ((y + dir.deltaY * d) << 8);
-						if (extended < 0 || extended > 0xffff)
-							continue DIRECTIONAL;
-						short next = hilbertDistances[extended];
-						if (quickBounds.contains(next)) {
-							if (storedSet.add(next))
-								vla.add(next);
-						} else
-							continue DIRECTIONAL;
-					}
-				}
-			}
-		}
-		int[] indices = vla.asInts();
-		if (indices.length < 1)
-			return ALL_WALL;
-		Arrays.sort(indices);
-
-		vla = new ShortVLA(128);
-		int current, past = indices[0], skip = 0;
-
-		vla.add((short) indices[0]);
-		for (i = 1; i < indices.length; i++) {
-			current = indices[i];
-			if (current - past > 1) {
-				vla.add((short) (skip + 1));
-				skip = 0;
-				vla.add((short) (current - past - 1));
-			} else if (current != past)
-				skip++;
-			past = current;
-		}
-		vla.add((short) (skip + 1));
-
-		return vla.toArray();
-	}
-
-	/**
 	 * Given a width and height, returns a packed array that encodes "on" for the
 	 * rectangle from (0,0) to (width - 1, height - 1). Primarily useful with
 	 * intersectPacked() to ensure things like negatePacked() that can encode "on"
@@ -5217,89 +5060,6 @@ public class CoordPacker {
 	}
 
 	/**
-	 * Takes an x, y position and returns the length to travel along the 16x16 Moore
-	 * curve to reach that position. This assumes x and y are between 0 and 15,
-	 * inclusive. This uses a lookup table for the 16x16 Moore Curve, which should
-	 * make it faster than calculating the distance along the Moore Curve
-	 * repeatedly.
-	 * 
-	 * @param x
-	 *            between 0 and 15 inclusive
-	 * @param y
-	 *            between 0 and 15 inclusive
-	 * @return the distance to travel along the 16x16 Moore Curve to get to the
-	 *         given x, y point.
-	 */
-	public static int posToMoore(final int x, final int y) {
-		return mooreDistances[x + (y << 4)] & 0xff;
-	}
-	/*
-	 * Takes an x, y position and returns the length to travel along the 256x256
-	 * Hilbert curve to reach that position. This assumes x and y are between 0 and
-	 * 255, inclusive. Source:
-	 * http://and-what-happened.blogspot.com/2011/08/fast-2d-and-3d-hilbert-curves-
-	 * and.html
-	 * 
-	 * @param x between 0 and 255 inclusive
-	 * 
-	 * @param y between 0 and 255 inclusive
-	 * 
-	 * @return the distance to travel along the 256x256 Hilbert Curve to get to the
-	 * given x, y point.
-	 */
-
-	private static int posToHilbertNoLUT(final int x, final int y) {
-		int hilbert = 0, remap = 0xb4, mcode, hcode;
-		/*
-		 * while( block > 0 ) { --block; mcode = ( ( x >> block ) & 1 ) | ( ( ( y >> (
-		 * block ) ) & 1 ) << 1); hcode = ( ( remap >> ( mcode << 1 ) ) & 3 ); remap ^=
-		 * ( 0x82000028 >> ( hcode << 3 ) ); hilbert = ( ( hilbert << 2 ) + hcode ); }
-		 */
-
-		mcode = ((x >> 7) & 1) | (((y >> (7)) & 1) << 1);
-		hcode = ((remap >> (mcode << 1)) & 3);
-		remap ^= (0x82000028 >> (hcode << 3));
-		hilbert = ((hilbert << 2) + hcode);
-
-		mcode = ((x >> 6) & 1) | (((y >> (6)) & 1) << 1);
-		hcode = ((remap >> (mcode << 1)) & 3);
-		remap ^= (0x82000028 >> (hcode << 3));
-		hilbert = ((hilbert << 2) + hcode);
-
-		mcode = ((x >> 5) & 1) | (((y >> (5)) & 1) << 1);
-		hcode = ((remap >> (mcode << 1)) & 3);
-		remap ^= (0x82000028 >> (hcode << 3));
-		hilbert = ((hilbert << 2) + hcode);
-
-		mcode = ((x >> 4) & 1) | (((y >> (4)) & 1) << 1);
-		hcode = ((remap >> (mcode << 1)) & 3);
-		remap ^= (0x82000028 >> (hcode << 3));
-		hilbert = ((hilbert << 2) + hcode);
-
-		mcode = ((x >> 3) & 1) | (((y >> (3)) & 1) << 1);
-		hcode = ((remap >> (mcode << 1)) & 3);
-		remap ^= (0x82000028 >> (hcode << 3));
-		hilbert = ((hilbert << 2) + hcode);
-
-		mcode = ((x >> 2) & 1) | (((y >> (2)) & 1) << 1);
-		hcode = ((remap >> (mcode << 1)) & 3);
-		remap ^= (0x82000028 >> (hcode << 3));
-		hilbert = ((hilbert << 2) + hcode);
-
-		mcode = ((x >> 1) & 1) | (((y >> (1)) & 1) << 1);
-		hcode = ((remap >> (mcode << 1)) & 3);
-		remap ^= (0x82000028 >> (hcode << 3));
-		hilbert = ((hilbert << 2) + hcode);
-
-		mcode = (x & 1) | ((y & 1) << 1);
-		hcode = ((remap >> (mcode << 1)) & 3);
-
-		hilbert = ((hilbert << 2) + hcode);
-
-		return hilbert;
-	}
-
-	/**
 	 * Takes a position as a Morton code, with interleaved x and y bits and x in the
 	 * least significant bit, and returns the length to travel along the 256x256
 	 * Hilbert Curve to reach that position. This uses 16 bits of the Morton code
@@ -5436,20 +5196,6 @@ public class CoordPacker {
 	 */
 	public static int coordToHilbert(final Coord pt) {
 		return posToHilbert(pt.x, pt.y);
-	}
-
-	/**
-	 * Takes a position as a Coord called pt and returns the length to travel along
-	 * the 16x16 Moore curve to reach that position. This assumes pt.x and pt.y are
-	 * between 0 and 15, inclusive.
-	 * 
-	 * @param pt
-	 *            a Coord with values between 0 and 15, inclusive
-	 * @return a distance from the "start" of the 16x16 Moore curve to get to the
-	 *         position of pt
-	 */
-	public static int coordToMoore(final Coord pt) {
-		return posToMoore(pt.x, pt.y);
 	}
 
 	public static int mortonEncode3D(int index1, int index2, int index3) { // pack 3 5-bit indices into a 15-bit Morton
