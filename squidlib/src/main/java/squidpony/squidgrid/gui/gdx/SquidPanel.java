@@ -2,7 +2,6 @@ package squidpony.squidgrid.gui.gdx;
 
 import java.util.Arrays;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.MathUtils;
@@ -14,9 +13,6 @@ import com.badlogic.gdx.utils.Align;
 
 import squidpony.IColorCenter;
 import squidpony.panel.ISquidPanel;
-import squidpony.squidgrid.Direction;
-import squidpony.squidmath.Coord;
-import squidpony.squidmath.OrderedSet;
 
 /**
  * Displays text and images in a grid pattern. Supports basic animations.
@@ -38,7 +34,6 @@ public final class SquidPanel extends Group implements ISquidPanel<Color> {
 	protected final Color[][] colors;
 	protected final TextCellFactory textFactory;
 	protected float xOffset, yOffset;
-	private final OrderedSet<AnimatedEntity> animatedEntities;
 	public static final float DEFAULT_ANIMATION_DURATION = 0.12F;
 
 	/**
@@ -84,97 +79,6 @@ public final class SquidPanel extends Group implements ISquidPanel<Color> {
 		this.xOffset = xOffset;
 		this.yOffset = yOffset;
 		setSize(w, h);
-		animatedEntities = new OrderedSet<>();
-	}
-
-	/**
-	 * Start a bumping animation in the given direction that will last duration
-	 * seconds.
-	 * 
-	 * @param ae
-	 *            an AnimatedEntity returned by animateActor()
-	 * @param direction
-	 * @param duration
-	 *            a float, measured in seconds, for how long the animation should
-	 *            last; commonly 0.12f
-	 */
-	public void bump(final AnimatedEntity ae, Direction direction, float duration) {
-		final Actor a = ae.actor;
-		final float x = adjustX(ae.gridX, ae.doubleWidth), y = adjustY(ae.gridY);
-		// ae.gridX * cellWidth + (int)getX(),
-		// (gridHeight - ae.gridY - 1) * cellHeight - 1 + (int)getY();
-		if (a == null || ae.animating)
-			return;
-		duration = clampDuration(duration);
-		animationCount++;
-		ae.animating = true;
-		a.addAction(Actions.sequence(
-				Actions.moveToAligned(x + (direction.deltaX / 3F) * ((ae.doubleWidth) ? 2F : 1F),
-						y + direction.deltaY / 3F, Align.center, duration * 0.35F),
-				Actions.moveToAligned(x, y, Align.bottomLeft, duration * 0.65F),
-				Actions.delay(duration, Actions.run(new Runnable() {
-					@Override
-					public void run() {
-						recallActor(ae);
-					}
-				}))));
-
-	}
-
-	/**
-	 * Starts a bumping animation in the direction provided.
-	 *
-	 * @param location
-	 * @param direction
-	 */
-	public void bump(Coord location, Direction direction) {
-		bump(location.x, location.y, direction, DEFAULT_ANIMATION_DURATION);
-	}
-
-	/**
-	 * Starts a bumping animation in the direction provided.
-	 *
-	 * @param x
-	 * @param y
-	 * @param direction
-	 */
-	public void bump(int x, int y, Direction direction) {
-		bump(x, y, direction, DEFAULT_ANIMATION_DURATION);
-	}
-
-	/**
-	 * Start a bumping animation in the given direction that will last duration
-	 * seconds.
-	 * 
-	 * @param x
-	 * @param y
-	 * @param direction
-	 * @param duration
-	 *            a float, measured in seconds, for how long the animation should
-	 *            last; commonly 0.12f
-	 */
-	public void bump(int x, int y, Direction direction, float duration) {
-		final Actor a = cellToActor(x, y);
-		if (a == null)
-			return;
-		duration = clampDuration(duration);
-		animationCount++;
-		float nextX = adjustX(x, false), nextY = adjustY(y);
-		/*
-		 * x *= cellWidth; y = (gridHeight - y - 1); y *= cellHeight; y -= 1; x +=
-		 * getX(); y += getY();
-		 */
-		a.addAction(Actions.sequence(
-				Actions.moveToAligned(nextX + direction.deltaX / 3F, nextY + direction.deltaY / 3F, Align.center,
-						duration * 0.35F),
-				Actions.moveToAligned(nextX, nextY, Align.bottomLeft, duration * 0.65F),
-				Actions.delay(duration, Actions.run(new Runnable() {
-					@Override
-					public void run() {
-						recallActor(a, true);
-					}
-				}))));
-
 	}
 
 	@Override
@@ -199,56 +103,6 @@ public final class SquidPanel extends Group implements ISquidPanel<Color> {
 			}
 		}
 		super.draw(batch, parentAlpha);
-		for (AnimatedEntity ae : animatedEntities) {
-			ae.actor.act(Gdx.graphics.getDeltaTime());
-		}
-	}
-
-	/**
-	 * Draws one AnimatedEntity, specifically the Actor it contains. Batch must be
-	 * between start() and end()
-	 * 
-	 * @param batch
-	 *            Must have start() called already but not stop() yet during this
-	 *            frame.
-	 * @param parentAlpha
-	 *            This can be assumed to be 1.0f if you don't know it
-	 * @param ae
-	 *            The AnimatedEntity to draw; the position to draw ae is stored
-	 *            inside it.
-	 */
-	public void drawActor(Batch batch, float parentAlpha, AnimatedEntity ae) {
-		ae.actor.draw(batch, parentAlpha);
-	}
-
-	/**
-	 * Fade the cell at {@code (x,y)} to {@code color}. Contrary to
-	 * {@link #tint(int, int, Color, float)}, this action does not restore the
-	 * cell's color at the end of its execution. This is for example useful to fade
-	 * the game screen when the rogue dies.
-	 *
-	 * @param x
-	 *            the x-coordinate of the cell to tint
-	 * @param y
-	 *            the y-coordinate of the cell to tint
-	 * @param color
-	 *            The color at the end of the fadeout.
-	 * @param duration
-	 *            The fadeout's duration.
-	 */
-	public void fade(int x, int y, Color color, float duration) {
-		final Actor a = cellToActor(x, y);
-		if (a == null)
-			return;
-		duration = clampDuration(duration);
-		animationCount++;
-		final Color c = color;
-		a.addAction(Actions.sequence(Actions.color(c, duration), Actions.run(new Runnable() {
-			@Override
-			public void run() {
-				recallActor(a, true);
-			}
-		})));
 	}
 
 	/**
@@ -336,135 +190,6 @@ public final class SquidPanel extends Group implements ISquidPanel<Color> {
 	}
 
 	/**
-	 * Start a movement animation for the object at the grid location x, y and moves
-	 * it to newX, newY over a number of seconds given by duration (often 0.12f or
-	 * somewhere around there).
-	 * 
-	 * @param ae
-	 *            an AnimatedEntity returned by animateActor()
-	 * @param newX
-	 * @param newY
-	 * @param duration
-	 */
-	public void slide(final AnimatedEntity ae, int newX, int newY, float duration) {
-		final Actor a = ae.actor;
-		final float nextX = adjustX(newX, ae.doubleWidth), nextY = adjustY(newY);
-		// final int nextX = newX * cellWidth * ((ae.doubleWidth) ? 2 : 1) +
-		// (int)getX(), nextY = (gridHeight - newY - 1) * cellHeight - 1 + (int)getY();
-		if (a == null || ae.animating)
-			return;
-		duration = clampDuration(duration);
-		animationCount++;
-		ae.animating = true;
-		a.addAction(Actions.sequence(Actions.moveToAligned(nextX, nextY, Align.bottomLeft, duration),
-				Actions.delay(duration, Actions.run(new Runnable() {
-					@Override
-					public void run() {
-						recallActor(ae);
-					}
-				}))));
-	}
-
-	/**
-	 * Starts a movement animation for the object at the given grid location at the
-	 * default speed.
-	 *
-	 * @param start
-	 *            Coord to pick up a tile from and slide
-	 * @param end
-	 *            Coord to end the slide on
-	 */
-	public void slide(Coord start, Coord end) {
-		slide(start.x, start.y, end.x, end.y, DEFAULT_ANIMATION_DURATION);
-	}
-
-	/**
-	 * Starts a sliding movement animation for the object at the given location at
-	 * the provided speed. The duration is how many seconds should pass for the
-	 * entire animation.
-	 *
-	 * @param start
-	 * @param end
-	 * @param duration
-	 */
-	public void slide(Coord start, Coord end, float duration) {
-		slide(start.x, start.y, end.x, end.y, duration);
-	}
-
-	/**
-	 * Starts a movement animation for the object at the given grid location at the
-	 * default speed for one grid square in the direction provided.
-	 *
-	 * @param start
-	 *            Coord to pick up a tile from and slide
-	 * @param direction
-	 *            Direction enum that indicates which way the slide should go
-	 */
-	public void slide(Coord start, Direction direction) {
-		slide(start.x, start.y, start.x + direction.deltaX, start.y + direction.deltaY, DEFAULT_ANIMATION_DURATION);
-	}
-
-	/**
-	 * Start a movement animation for the object at the grid location x, y and moves
-	 * it to newX, newY over a number of seconds given by duration (often 0.12f or
-	 * somewhere around there).
-	 * 
-	 * @param x
-	 * @param y
-	 * @param newX
-	 * @param newY
-	 * @param duration
-	 */
-	public void slide(int x, int y, int newX, int newY, float duration) {
-		final Actor a = cellToActor(x, y);
-		if (a == null)
-			return;
-		duration = clampDuration(duration);
-		animationCount++;
-		float nextX = adjustX(newX, false), nextY = adjustY(newY);
-
-		/*
-		 * newX *= cellWidth; newY = (gridHeight - newY - 1); newY *= cellHeight; newY
-		 * -= 1; x += getX(); y += getY();
-		 */
-		a.addAction(Actions.sequence(Actions.moveToAligned(nextX, nextY, Align.bottomLeft, duration),
-				Actions.delay(duration, Actions.run(new Runnable() {
-					@Override
-					public void run() {
-						recallActor(a, true);
-					}
-				}))));
-	}
-
-	/**
-	 * Slides {@code name} from {@code (x,y)} to {@code (newx, newy)}. If
-	 * {@code name} or {@code
-	 * color} is {@code null}, it is picked from this panel (hereby removing the
-	 * current name, if any).
-	 * 
-	 * @param x
-	 *            Where to start the slide, horizontally.
-	 * @param y
-	 *            Where to start the slide, vertically.
-	 * @param name
-	 *            The name to slide, or {@code null} to pick it from this panel's
-	 *            {@code (x,y)} cell.
-	 * @param color
-	 *            The color to use, or {@code null} to pick it from this panel's
-	 *            {@code (x,y)} cell.
-	 * @param newX
-	 *            Where to end the slide, horizontally.
-	 * @param newY
-	 *            Where to end the slide, vertically.
-	 * @param duration
-	 *            The animation's duration.
-	 */
-	public void slide(int x, int y, final /* @Nullable */ String name, /* @Nullable */ Color color, int newX, int newY,
-			float duration) {
-		slide(x, y, name, color, newX, newY, duration, null);
-	}
-
-	/**
 	 * Slides {@code name} from {@code (x,y)} to {@code (newx, newy)}. If
 	 * {@code name} or {@code color} is {@code null}, it is picked from this panel
 	 * (thereby removing the current name, if any). This also allows a Runnable to
@@ -525,57 +250,6 @@ public final class SquidPanel extends Group implements ISquidPanel<Color> {
 	}
 
 	/**
-	 * Starts a tint animation for {@code ae} for the given {@code duration} in
-	 * seconds.
-	 *
-	 * @param ae
-	 *            an AnimatedEntity returned by animateActor()
-	 * @param color
-	 *            what to transition ae's color towards, and then transition back
-	 *            from
-	 * @param duration
-	 *            how long the total "round-trip" transition should take in
-	 *            milliseconds
-	 */
-	public void tint(final AnimatedEntity ae, Color color, float duration) {
-		final Actor a = ae.actor;
-		if (a == null)
-			return;
-		duration = clampDuration(duration);
-		ae.animating = true;
-		animationCount++;
-		Color ac = a.getColor();
-		a.addAction(Actions.sequence(Actions.color(color, duration * 0.3f), Actions.color(ac, duration * 0.7f),
-				Actions.delay(duration, Actions.run(new Runnable() {
-					@Override
-					public void run() {
-						recallActor(ae);
-					}
-				}))));
-	}
-
-	/**
-	 * Like {@link #tint(int, int, Color, float)}, but waits for {@code delay} (in
-	 * seconds) before performing it.
-	 * 
-	 * @param delay
-	 *            how long to wait in milliseconds before starting the effect
-	 * @param x
-	 *            the x-coordinate of the cell to tint
-	 * @param y
-	 *            the y-coordinate of the cell to tint
-	 * @param color
-	 *            what to transition ae's color towards, and then transition back
-	 *            from
-	 * @param duration
-	 *            how long the total "round-trip" transition should take in
-	 *            milliseconds
-	 */
-	public void tint(float delay, int x, int y, Color color, float duration) {
-		tint(delay, x, y, color, duration, null);
-	}
-
-	/**
 	 * Like {@link #tint(int, int, Color, float)}, but waits for {@code delay} (in
 	 * seconds) before performing it. Additionally, enqueue {@code postRunnable} for
 	 * running after the created action ends.
@@ -628,21 +302,6 @@ public final class SquidPanel extends Group implements ISquidPanel<Color> {
 		});
 
 		a.addAction(Actions.sequence(sequence));
-	}
-
-	/**
-	 * Starts a tint animation for the object at {@code (x,y)} for the given
-	 * {@code duration} (in seconds).
-	 * 
-	 * @param x
-	 *            the x-coordinate of the cell to tint
-	 * @param y
-	 *            the y-coordinate of the cell to tint
-	 * @param color
-	 * @param duration
-	 */
-	public final void tint(int x, int y, Color color, float duration) {
-		tint(0f, x, y, color, duration);
 	}
 
 	protected float clampDuration(float duration) {
@@ -708,15 +367,5 @@ public final class SquidPanel extends Group implements ISquidPanel<Color> {
 		if (restoreSym)
 			contents[x][y] = a.getName();
 		removeActor(a);
-	}
-
-	private void recallActor(AnimatedEntity ae) {
-		if (ae.doubleWidth)
-			ae.gridX = Math.round((ae.actor.getX() - getX()) / (2 * cellWidth));
-		else
-			ae.gridX = Math.round((ae.actor.getX() - getX()) / cellWidth);
-		ae.gridY = gridHeight - (int) ((ae.actor.getY() - getY()) / cellHeight) - 1;
-		ae.animating = false;
-		animationCount--;
 	}
 }
