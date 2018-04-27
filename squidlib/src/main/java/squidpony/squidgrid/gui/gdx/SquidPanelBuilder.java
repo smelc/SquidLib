@@ -2,12 +2,9 @@ package squidpony.squidgrid.gui.gdx;
 
 import com.badlogic.gdx.assets.AssetDescriptor;
 import com.badlogic.gdx.assets.AssetManager;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-
-import squidpony.IColorCenter;
 
 /**
  * An almost-concrete implementation of {@link IPanelBuilder}. This class makes
@@ -26,7 +23,6 @@ import squidpony.IColorCenter;
  */
 public abstract class SquidPanelBuilder extends IPanelBuilder.Skeleton {
 
-	protected final /* @Nullable */ IColorCenter<Color> icc;
 	public final /* @Nullable */ AssetManager assetManager;
 
 	protected final int smallestFont;
@@ -42,15 +38,11 @@ public abstract class SquidPanelBuilder extends IPanelBuilder.Skeleton {
 	 * @param fontOffset
 	 *            This offset is added to the cell size when computing the font size
 	 *            for a given cell size.
-	 * @param icc
-	 *            The color center to give to
-	 *            {@link SquidPanel#setColorCenter(IColorCenter)}, or {@code null}
 	 *            not to call this method.
 	 * @param assetManager
 	 */
-	public SquidPanelBuilder(int smallestFont, int largestFont, int fontOffset, /* @Nullable */IColorCenter<Color> icc,
+	public SquidPanelBuilder(int smallestFont, int largestFont, int fontOffset,
 			/* @Nullable */ AssetManager assetManager) {
-		this.icc = icc;
 		this.assetManager = assetManager;
 
 		this.smallestFont = smallestFont;

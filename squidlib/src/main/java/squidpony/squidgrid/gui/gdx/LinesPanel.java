@@ -1,5 +1,8 @@
 package squidpony.squidgrid.gui.gdx;
 
+import java.util.LinkedList;
+import java.util.ListIterator;
+
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -11,17 +14,16 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Align;
+
 import squidpony.panel.IColoredString;
 import squidpony.panel.IMarkup;
-
-import java.util.LinkedList;
-import java.util.ListIterator;
 
 /**
  * An actor capable of drawing {@link IColoredString}s. It is lines-oriented:
  * putting a line may erase a line put before. It is designed to write text with
- * a variable-width font (as opposed to {@link SquidPanel}). It performs line wrapping by
- * default. It can write from top to bottom or from bottom to top (the default).
+ * a variable-width font (as opposed to {@link SquidPanel}). It performs line
+ * wrapping by default. It can write from top to bottom or from bottom to top
+ * (the default).
  * 
  * <p>
  * This
@@ -33,25 +35,22 @@ import java.util.ListIterator;
  * <p>
  * This class is usually used as follows:
  * 
- * <pre>
+ * <code>
  * final int nbLines = LinesPanel.computeMaxLines(font, pixelHeight);
- * final LinesPanel<Color> lp = new LinesPanel(new GDXMarkup(), font, nbLines);
+ * final LinesPanel&lt;Color&gt; lp = new LinesPanel(new GDXMarkup(), font, nbLines);
  * lp.setSize(pixelWidth, pixelHeight);
  * stage.addActor(lp);
- * </pre>
+ * </code>
  * </p>
  * 
  * <p>
- * Contrary to {@link SquidMessageBox}, this panel doesn't support scrolling
+ * Contrary to {@code SquidMessageBox}, this panel doesn't support scrolling
  * (for now). So it's suited when it is fine forgetting old messages (as in
  * brogue's messages area).
  * </p>
  * 
  * @author smelC
  * @param <T>
- * 
- * @see SquidMessageBox An alternative, doing similar lines-drawing business,
- *      but being backed up by {@link SquidPanel}.
  */
 public class LinesPanel<T extends Color> extends Actor {
 

@@ -181,7 +181,6 @@ public interface IRNG {
 	 *            an array of T; <b>will</b> be modified
 	 * @param <T>
 	 *            can be any non-primitive type.
-	 * @return elements after shuffling it in-place
 	 */
 	public <T> void shuffleInPlace(T[] elements);
 
@@ -228,9 +227,7 @@ public interface IRNG {
 	public <T> ArrayList<T> shuffle(Collection<T> elements, /* @Nullable */ ArrayList<T> buf);
 
 	/**
-	 * The state of {@code this}. May be {@code this} itself, maybe not.
-	 * 
-	 * @param acc
+	 * @return The state of {@code this}. May be {@code this} itself, maybe not.
 	 */
 	public Serializable toSerializable();
 }

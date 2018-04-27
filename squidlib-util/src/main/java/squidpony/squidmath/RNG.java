@@ -1,10 +1,17 @@
 package squidpony.squidmath;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Random;
+
 import squidpony.GwtCompatibility;
 import squidpony.annotation.GwtIncompatible;
-
-import java.io.Serializable;
-import java.util.*;
 
 /**
  * A wrapper class for working with random number generators in a more friendly
@@ -12,11 +19,14 @@ import java.util.*;
  *
  * Includes methods for getting values between two numbers and for getting
  * random elements from a collection or array.
+ * 
+ * @deprecated Use {@link IRNG} instead
  *
  * @author Eben Howard - http://squidpony.com - howard@squidpony.com
  * @author Tommy Ettinger
  * @author smelC
  */
+@Deprecated
 public class RNG implements Serializable {
 
 	protected static final double DOUBLE_UNIT = 1.0 / (1L << 53);
@@ -546,15 +556,14 @@ public class RNG implements Serializable {
 
 	/**
 	 * Shuffles an array in place using the Fisher-Yates algorithm. If you don't
-	 * want the array modified, use {@link #shuffle(Object[], Object[])}. Unlike
-	 * {@link #shuffle(Object[])}, this is GWT-compatible. <br>
+	 * want the array modified, use {@code shuffle(Object[], Object[])}. Unlike
+	 * {@code shuffle(Object[])}, this is GWT-compatible. <br>
 	 * https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
 	 * 
 	 * @param elements
 	 *            an array of T; <b>will</b> be modified
 	 * @param <T>
 	 *            can be any non-primitive type.
-	 * @return elements after shuffling it in-place
 	 */
 	public <T> void shuffleInPlace(T[] elements) {
 		for (int i = elements.length - 1; i > 0; i--) {
@@ -574,42 +583,6 @@ public class RNG implements Serializable {
 			elements.set(r, ati);
 			elements.set(i, atr);
 		}
-	}
-
-	/**
-	 * Shuffle an array using the "inside-out" Fisher-Yates algorithm. DO NOT
-	 * give the same array for both elements and dest, since the prior contents
-	 * of dest are rearranged before elements is used, and if they refer to the
-	 * same array, then you can end up with bizarre bugs where one
-	 * previously-unique item shows up dozens of times. If possible, create a
-	 * new array with the same length as elements and pass it in as dest; the
-	 * returned value can be assigned to whatever you want and will have the
-	 * same items as the newly-formed array. <br>
-	 * https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle#The_.22inside-
-	 * out.22_algorithm
-	 * 
-	 * @param elements
-	 *            an array of T; will not be modified
-	 * @param <T>
-	 *            can be any non-primitive type.
-	 * @param dest
-	 *            Where to put the shuffle. If it does not have the same length
-	 *            as {@code elements}, this will use the randomPortion method of
-	 *            this class to fill the smaller dest. MUST NOT be the same
-	 *            array as elements!
-	 * @return {@code dest} after modifications
-	 */
-	/* This method has this prototype to be compatible with GWT. */
-	public <T> T[] shuffle(T[] elements, T[] dest) {
-		if (dest.length != elements.length)
-			return randomPortion(elements, dest);
-		for (int i = 0; i < elements.length; i++) {
-			int r = nextInt(i + 1);
-			if (r != i)
-				dest[i] = dest[r];
-			dest[r] = elements[i];
-		}
-		return dest;
 	}
 
 	/**

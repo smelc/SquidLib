@@ -16,8 +16,8 @@ import com.badlogic.gdx.utils.Pools;
 public class UIUtil {
 
 	/**
-	 * Writes {@code text} at {@code (x, y)} by cuttinga using "…" if it gets
-	 * wider than {@code width}.
+	 * Writes {@code text} at {@code (x, y)} by cuttinga using "…" if it gets wider
+	 * than {@code width}.
 	 * 
 	 * @param batch
 	 * @param font
@@ -27,7 +27,7 @@ public class UIUtil {
 	 * @param color
 	 *            The text's color
 	 * @param align
-	 *            The alignment (see {@link Align}).
+	 *            The alignment (see {@code Align}).
 	 * @param width
 	 *            The desired width of the text
 	 * @param x
@@ -282,20 +282,12 @@ public class UIUtil {
 	public static enum CornerStyle {
 		SQUARE,
 		/**
-		 * Here's an example of this style:
-		 * 
-		 * <br>
-		 * 
-		 * <img src="http://i.imgur.com/AQgWeic.png"/>.
+		 * Here's an example of this style http://i.imgur.com/AQgWeic.png
 		 */
 		ROUNDED,
 		/**
-		 * A NES-like style (to my taste..). Try it, I can't explain it with
-		 * sentences. Here's an example:
-		 * 
-		 * <br>
-		 * 
-		 * <img src="http://i.imgur.com/PQSvT0t.png"/>
+		 * A NES-like style (to my taste..). Try it, I can't explain it with sentences.
+		 * Here's an example: http://i.imgur.com/PQSvT0t.png
 		 */
 		MISSING,
 	}

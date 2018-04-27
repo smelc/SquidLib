@@ -11,7 +11,6 @@ import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.utils.Align;
 
-import squidpony.IColorCenter;
 import squidpony.panel.ISquidPanel;
 
 /**
@@ -51,10 +50,6 @@ public final class SquidPanel extends Group implements ISquidPanel<Color> {
 	 *            the number of cells vertically
 	 * @param factory
 	 *            the factory to use for cell rendering
-	 * @param assetManager
-	 * @param center
-	 *            The color center to use. Can be {@code null}, but then must be set
-	 *            later on with {@link #setColorCenter(IColorCenter)}.
 	 */
 	public SquidPanel(int gridWidth, int gridHeight, TextCellFactory factory, float xOffset,
 			float yOffset) {
@@ -250,10 +245,6 @@ public final class SquidPanel extends Group implements ISquidPanel<Color> {
 	}
 
 	/**
-	 * Like {@link #tint(int, int, Color, float)}, but waits for {@code delay} (in
-	 * seconds) before performing it. Additionally, enqueue {@code postRunnable} for
-	 * running after the created action ends.
-	 * 
 	 * @param delay
 	 *            how long to wait in milliseconds before starting the effect
 	 * @param x

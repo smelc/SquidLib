@@ -461,7 +461,7 @@ public class DijkstraMap implements Serializable {
 	 * normal cost to enter. The costs can be accessed later by using costMap
 	 * directly (which will have a valid value when this does not throw an
 	 * exception), or by calling setCost().
-	 * <p/>
+	 * 
 	 * This method allows you to specify an alternate wall char other than the
 	 * default character, '#' .
 	 *
@@ -491,7 +491,7 @@ public class DijkstraMap implements Serializable {
 	 * other impassable values should be given WALL as a value, however. The costs
 	 * can be accessed later by using costMap directly (which will have a valid
 	 * value when this does not throw an exception), or by calling setCost().
-	 * <p/>
+	 * 
 	 * This method should be slightly more efficient than the other initializeCost
 	 * methods.
 	 *
@@ -790,7 +790,7 @@ public class DijkstraMap implements Serializable {
 	 * considered more safe, and will make a pathfinder more likely to enter those
 	 * places if they were considered dangerous earlier (due to calling
 	 * deteriorate()).
-	 * <p/>
+	 * 
 	 * Typically, you call relax() with previous Coords a pathfinder stayed at that
 	 * should be safer now than they were at some previous point in time, and you
 	 * might do this when no one has been attacked in a while or when the AI is sure
@@ -811,7 +811,7 @@ public class DijkstraMap implements Serializable {
 	 * considered more safe, and will make a pathfinder more likely to enter those
 	 * places if they were considered dangerous earlier (due to calling
 	 * deteriorate()).
-	 * <p/>
+	 * 
 	 * Typically, you call relax() with previous Coords a pathfinder stayed at that
 	 * should be safer now than they were at some previous point in time, and you
 	 * might do this when no one has been attacked in a while or when the AI is sure
@@ -1836,9 +1836,6 @@ public class DijkstraMap implements Serializable {
 	 * @param maxPreferredRange
 	 *            the (inclusive) upper bound of the distance this unit will try to
 	 *            keep from a target
-	 * @param cache
-	 *            a FOVCache that has completed its calculations, and will be used
-	 *            for LOS work, may be null
 	 * @param impassable
 	 *            a Set of impassable Coord positions that may change (not constant
 	 *            like walls); can be null

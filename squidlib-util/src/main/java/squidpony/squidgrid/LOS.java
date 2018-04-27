@@ -19,7 +19,7 @@ import squidpony.squidmath.OrderedSet;
  * are the default (they can also be specified by passing {@link #BRESENHAM} to
  * the constructor). For more specialized usage, there are other kinds of LOS in
  * this class, like lines that make no diagonal moves between cells (using
- * {@link #ORTHO}, or lines that check a wide path (but these use different
+ * {@code ORTHO}, or lines that check a wide path (but these use different
  * methods, like {@link #thickReachable(Radius)}). <br>
  * Performance-wise, all of these methods are rather fast and about the same
  * speed. {@link #RAY} is a tiny fraction faster than {@link #BRESENHAM} but

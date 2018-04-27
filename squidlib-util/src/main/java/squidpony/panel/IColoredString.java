@@ -25,7 +25,7 @@ public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 	/**
 	 * A convenience alias for {@code append(c, null)}.
 	 * 
-	 * @param text
+	 * @param c
 	 */
 	void append(/* @Nullable */ char c);
 
