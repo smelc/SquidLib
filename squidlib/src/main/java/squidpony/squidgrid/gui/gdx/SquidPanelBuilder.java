@@ -21,32 +21,37 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
  * 
  * @author smelC
  */
+// FIXME MOVE ME to com.hgames.core
 public abstract class SquidPanelBuilder extends IPanelBuilder.Skeleton {
 
 	public final /* @Nullable */ AssetManager assetManager;
 
-	protected final int smallestFont;
-	protected final int largestFont;
+	protected final int smallestCellSize;
+	protected final int largestCellSize;
 
 	protected final int fontOffset;
 
 	/**
-	 * @param smallestFont
-	 *            The smallest font size available.
-	 * @param largestFont
-	 *            The largest font size available.
+	 * There MUST be font for [smallestCellSize, smallestCellSize + 2, ...,
+	 * largestCellSize]
+	 * 
+	 * @param smallestCellSize
+	 *            The smallest cell size available.
+	 * @param largestCellSize
+	 *            The largest cell size available.
 	 * @param fontOffset
 	 *            This offset is added to the cell size when computing the font size
-	 *            for a given cell size.
-	 *            not to call this method.
+	 *            for a given cell size. not to call this method.
 	 * @param assetManager
 	 */
-	public SquidPanelBuilder(int smallestFont, int largestFont, int fontOffset,
+	public SquidPanelBuilder(int smallestCellSize, int largestCellSize, int fontOffset,
 			/* @Nullable */ AssetManager assetManager) {
+		assert smallestCellSize <= largestCellSize;
+		assert 0 <= fontOffset;
 		this.assetManager = assetManager;
 
-		this.smallestFont = smallestFont;
-		this.largestFont = largestFont;
+		this.smallestCellSize = smallestCellSize;
+		this.largestCellSize = largestCellSize;
 		this.fontOffset = fontOffset;
 	}
 
@@ -108,22 +113,29 @@ public abstract class SquidPanelBuilder extends IPanelBuilder.Skeleton {
 	@Override
 	public int adjustCellSize(int sz) {
 		int result = sz % 2 == 0 ? sz : sz - 1;
-		if (hasFontForCellOfSize(result))
+		if (acceptsCellOfSize(result))
 			return result;
 		if (cellSizeTooBig(sz)) {
+			/*
+			 * Note that we don't want the cell increment (2 on ascii, 12 on pixels) here,
+			 * because 'result' may not be valid at all (hence we need to correct it).
+			 */
 			final int offset = -2;
 			while (0 < result) {
 				result += offset;
-				if (hasFontForCellOfSize(result))
+				if (acceptsCellOfSize(result))
 					return result;
 			}
 			throw new IllegalStateException("There's a bug in the computation of the cell size");
 		} else if (cellSizeTooSmall(result)) {
-			final int offset;
-			offset = 2;
+			/*
+			 * Note that we don't want the cell increment (2 on ascii, 12 on pixels) here,
+			 * because 'result' may not be valid at all (hence we need to correct it).
+			 */
+			final int offset = 2;
 			while (/* It's better to stop one day */ result < 512) {
 				result += offset;
-				if (hasFontForCellOfSize(result))
+				if (acceptsCellOfSize(result))
 					return result;
 			}
 			throw new IllegalStateException("There's a bug in the computation of the cell size");
@@ -134,16 +146,24 @@ public abstract class SquidPanelBuilder extends IPanelBuilder.Skeleton {
 
 	@Override
 	public boolean cellSizeTooBig(int cellSize) {
-		return largestFont < fontSizeForCellSize(cellSize);
+		return largestCellSize < fontSizeForCellSize(cellSize);
 	}
 
 	@Override
 	public boolean cellSizeTooSmall(int cellSize) {
-		return fontSizeForCellSize(cellSize) < smallestFont;
+		return fontSizeForCellSize(cellSize) < smallestCellSize;
+	}
+
+	public int getSmallestCellSize() {
+		return smallestCellSize;
+	}
+
+	public int getLargestCellSize() {
+		return largestCellSize;
 	}
 
 	@Override
-	public boolean hasFontForCellOfSize(int cellSize) {
+	public boolean acceptsCellOfSize(int cellSize) {
 		return hasFontOfSize(fontSizeForCellSize(cellSize));
 	}
 
@@ -154,7 +174,7 @@ public abstract class SquidPanelBuilder extends IPanelBuilder.Skeleton {
 
 	@Override
 	public boolean hasFontOfSize(int sz) {
-		return sz % 2 == 0 && smallestFont <= sz && sz <= largestFont;
+		return sz % 2 == 0 && smallestCellSize <= sz && sz <= largestCellSize;
 	}
 
 	/**

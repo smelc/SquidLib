@@ -78,7 +78,7 @@ public interface IPanelBuilder {
 	 * @return Whether there's a font available for a cell of size
 	 *         {@code cellSize}.
 	 */
-	boolean hasFontForCellOfSize(int cellSize);
+	boolean acceptsCellOfSize(int cellSize);
 
 	/**
 	 * @param cellSize
@@ -102,7 +102,7 @@ public interface IPanelBuilder {
 	abstract class Skeleton implements IPanelBuilder {
 
 		@Override
-		public boolean hasFontForCellOfSize(int cellSize) {
+		public boolean acceptsCellOfSize(int cellSize) {
 			return hasFontOfSize(fontSizeForCellSize(cellSize));
 		}
 
