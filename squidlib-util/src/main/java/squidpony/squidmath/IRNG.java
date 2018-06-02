@@ -157,6 +157,16 @@ public interface IRNG {
 	public long nextLong();
 
 	/**
+	 * Returns a random non-negative short below the given bound, or 0 if the bound
+	 * is 0 or negative.
+	 * 
+	 * @param bound
+	 *            the upper bound (exclusive)
+	 * @return a 64-bit random long.
+	 */
+	public short nextShort(short bound);
+
+	/**
 	 * Shuffle an array using the Fisher-Yates algorithm and returns a shuffled
 	 * copy. Not GWT-compatible; use the overload that takes two arrays if you use
 	 * GWT. <br>
