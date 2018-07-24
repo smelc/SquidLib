@@ -7,6 +7,10 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.BitmapFont.BitmapFontData;
+import com.badlogic.gdx.graphics.g2d.BitmapFont.Glyph;
+
 /**
  * A {@link String} divided in chunks of different colors. Use the
  * {@link Iterable} interface to get the pieces.
@@ -183,6 +187,9 @@ public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 	 * @return a String with markup inserted inside.
 	 */
 	String presentWithMarkup(IMarkup<T> markup);
+
+	/** @return The width of this string once when drawn with font */
+	public float width(BitmapFont font);
 
 	/**
 	 * A basic implementation of {@link IColoredString}.
@@ -742,6 +749,14 @@ public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 		}
 
 		@Override
+		public float width(BitmapFont font) {
+			float result = 0;
+			for (Bucket<T> fragment : fragments)
+				result += fragment.width(font);
+			return result;
+		}
+
+		@Override
 		public Iterator<Bucket<T>> iterator() {
 			return fragments.iterator();
 		}
@@ -837,6 +852,28 @@ public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 		 */
 		public/* @Nullable */T getColor() {
 			return color;
+		}
+
+		/** @return The width of this string once when drawn with font */
+		public float width(BitmapFont font) {
+			if (text == null)
+				return 0f;
+			else {
+				float result = 0f;
+				final int len = text.length();
+				final BitmapFontData data = font.getData();
+				for (int i = 0; i < len; i++) {
+					final char charAt = text.charAt(i);
+					Glyph glyph = data.getGlyph(charAt);
+					/* glyph==null ==> font doesn't contain character */
+					if (glyph == null) {
+						System.err.println("Font misses character being used: " + charAt);
+						glyph = data.getGlyph(' '); // approximation
+					}
+					result += glyph.width;
+				}
+				return result;
+			}
 		}
 
 		@Override

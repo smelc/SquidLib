@@ -238,6 +238,11 @@ public class LinesPanel<T extends Color> extends Actor {
 		}
 	}
 
+	/** Empty this instance. Different from {@link Actor#clear()}. */
+	public void empty() {
+		content.clear();
+	}
+
 	/**
 	 * Paints this panel with {@link #clearingColor}
 	 */

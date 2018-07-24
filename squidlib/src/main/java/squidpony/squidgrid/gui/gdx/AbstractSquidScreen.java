@@ -1,9 +1,10 @@
 package squidpony.squidgrid.gui.gdx;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
@@ -240,11 +241,9 @@ public abstract class AbstractSquidScreen<T extends Color> extends ScreenAdapter
 		return colorCenter.getBlack();
 	}
 
-	protected void clearScreen() {
-		final T c = getClearingColor();
-		if (renderer == null)
-			renderer = new ShapeRenderer();
-		UIUtil.drawRectangle(renderer, 0, 0, sizeManager.screenWidth, sizeManager.screenHeight, ShapeType.Filled, c);
+	protected final void clearScreen() {
+		Gdx.gl.glClearColor(0, 0, 0, 1);
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 	}
 
 	/**
