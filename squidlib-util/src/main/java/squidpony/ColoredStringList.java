@@ -18,6 +18,12 @@ public class ColoredStringList<T> extends ArrayList<IColoredString<T>> {
 
 	private static final long serialVersionUID = -5111205714079762803L;
 
+	/**
+	 * Character used by libgdx's Label and friends to determine when to output a
+	 * new line when wrapping text.
+	 */
+	public static final String GDX_NEWLINE = "\n";
+
 	public ColoredStringList() {
 		super();
 	}
@@ -44,7 +50,8 @@ public class ColoredStringList<T> extends ArrayList<IColoredString<T>> {
 	/**
 	 * Appends {@code text} to {@code this}, without specifying its color.
 	 * 
-	 * @param text the text to append
+	 * @param text
+	 *            the text to append
 	 */
 	public void addText(String text) {
 		addColoredText(text, null);
@@ -53,7 +60,8 @@ public class ColoredStringList<T> extends ArrayList<IColoredString<T>> {
 	/**
 	 * Appends {@code text} to {@code this}.
 	 * 
-	 * @param text the text to append
+	 * @param text
+	 *            the text to append
 	 */
 	public void addText(IColoredString<T> text) {
 		final int sz = size();
@@ -67,7 +75,8 @@ public class ColoredStringList<T> extends ArrayList<IColoredString<T>> {
 	/**
 	 * Appends colored text to {@code this}.
 	 * 
-	 * @param text the text to append
+	 * @param text
+	 *            the text to append
 	 */
 	public void addText(String text, T c) {
 		addColoredText(text, c);
@@ -81,7 +90,7 @@ public class ColoredStringList<T> extends ArrayList<IColoredString<T>> {
 	 */
 	public void addColoredText(String text, T c) {
 		if (isEmpty())
-			addColoredTextOnNewLine(text, c);
+			add(IColoredString.Impl.create(text, c));
 		else {
 			final IColoredString<T> last = get(size() - 1);
 			last.append(text, c);
@@ -89,10 +98,10 @@ public class ColoredStringList<T> extends ArrayList<IColoredString<T>> {
 	}
 
 	/**
-	 * Appends text to {@code this}, on a new line; without specifying its
-	 * color.
+	 * Appends text to {@code this}, on a new line; without specifying its color.
 	 * 
-	 * @param text the text to append
+	 * @param text
+	 *            the text to append
 	 */
 	public void addTextOnNewLine(String text) {
 		addColoredTextOnNewLine(text, null);
@@ -105,17 +114,18 @@ public class ColoredStringList<T> extends ArrayList<IColoredString<T>> {
 	/**
 	 * Appends colored text to {@code this}.
 	 * 
-	 * @param text the text to append
+	 * @param text
+	 *            the text to append
 	 */
 	public void addColoredTextOnNewLine(String text, /* @Nullable */ T color) {
-		this.add(IColoredString.Impl.<T> create(text, color));
+		this.add(IColoredString.Impl.<T>create(GDX_NEWLINE + text, color));
 	}
 
 	/**
-	 * Adds {@code texts} to {@code this}, starting a new line for the first
-	 * one.
+	 * Adds {@code texts} to {@code this}, starting a new line for the first one.
 	 * 
-	 * @param texts the Collection of objects extending IColoredString to append
+	 * @param texts
+	 *            the Collection of objects extending IColoredString to append
 	 */
 	public void addOnNewLine(Collection<? extends IColoredString<T>> texts) {
 		final Iterator<? extends IColoredString<T>> it = texts.iterator();
@@ -130,10 +140,11 @@ public class ColoredStringList<T> extends ArrayList<IColoredString<T>> {
 	}
 
 	/**
-	 * Contrary to {@link Collection#addAll(Collection)}, this method appends
-	 * text to the current text, without inserting new lines.
+	 * Contrary to {@link Collection#addAll(Collection)}, this method appends text
+	 * to the current text, without inserting new lines.
 	 *
-	 * @param texts the Collection of objects extending IColoredString to append
+	 * @param texts
+	 *            the Collection of objects extending IColoredString to append
 	 */
 	public void addAllText(Collection<? extends IColoredString<T>> texts) {
 		for (IColoredString<T> text : texts)
@@ -144,19 +155,22 @@ public class ColoredStringList<T> extends ArrayList<IColoredString<T>> {
 	 * Jumps a line.
 	 */
 	public void addEmptyLine() {
-		addTextOnNewLine("");
-		addTextOnNewLine("");
+		this.add(IColoredString.Impl.<T>create(GDX_NEWLINE, null));
 	}
 
 	/**
 	 * Changes a color in members of {@code this}.
 	 * 
-	 * @param old The color to replace. Can be {@code null}.
+	 * @param old
+	 *            The color to replace. Can be {@code null}.
 	 */
 	public void replaceColor(T old, T new_) {
 		final int sz = size();
-		for (int i = 0; i < sz; i++)
-			get(i).replaceColor(old, new_);
+		for (int i = 0; i < sz; i++) {
+			final IColoredString<T> ics = get(i);
+			if (ics != null)
+				ics.replaceColor(old, new_);
+		}
 	}
 
 }
