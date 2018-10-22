@@ -45,25 +45,25 @@ import squidpony.IColorCenter;
  */
 public abstract class AbstractSquidScreen<T extends Color> extends ScreenAdapter {
 
+	protected final IColorCenter<T> colorCenter;
+
+	protected boolean disposed = false;
+	protected final IPanelBuilder ipb;
+
+	protected boolean resized = false;
+
 	/**
 	 * The current size manager. It is always up-to-date w.r.t. to the actual
 	 * screen's size, except when a call to {@link #resize(int, int)} has been done
 	 * by libgdx, and {@link #getNext()} wasn't called yet.
 	 */
 	protected ScreenSizeManager sizeManager;
-
-	protected final IColorCenter<T> colorCenter;
-	protected final IPanelBuilder ipb;
-
 	/**
 	 * It is up to subclassers to initialize this field. Beware that is disposed if
 	 * non-null in {@link #dispose()}. Usually it is assigned at construction time
 	 * or in {@link #render(float)}.
 	 */
 	protected Stage stage;
-
-	protected boolean disposed = false;
-	protected boolean resized = false;
 
 	private ShapeRenderer renderer = null;
 
@@ -93,6 +93,11 @@ public abstract class AbstractSquidScreen<T extends Color> extends ScreenAdapter
 		this.ipb = ssi.ipb;
 	}
 
+	public final void clearScreen() {
+		Gdx.gl.glClearColor(0, 0, 0, 1);
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+	}
+
 	@Override
 	public void dispose() {
 		if (!disposed) {
@@ -117,15 +122,6 @@ public abstract class AbstractSquidScreen<T extends Color> extends ScreenAdapter
 		}
 	}
 
-	@Override
-	public void resize(int width, int height) {
-		/* In some implementations, this make getNext()'s behavior change */
-		this.resized |= true;
-		this.sizeManager = sizeManager.changeScreenSize(width, height);
-		if (disposeAtResize())
-			dispose();
-	}
-
 	/**
 	 * Implementations of this method should likely inspect {@link #disposed} and
 	 * {@link #resized}. When {@link #resized} holds, this method typically returns
@@ -148,10 +144,13 @@ public abstract class AbstractSquidScreen<T extends Color> extends ScreenAdapter
 	public abstract /* @Nullable */ AbstractSquidScreen<T> getNext();
 
 	/**
-	 * @return Whether libgdx called {@link #dispose()} on {@code this}.
+	 * Ideally, you should always go through this method to create a
+	 * {@link SquidPanel}.
+	 * 
+	 * @return How this class builds {@link SquidPanel}.
 	 */
-	public boolean isDisposed() {
-		return disposed;
+	public IPanelBuilder getPanelBuilder() {
+		return ipb;
 	}
 
 	/**
@@ -162,13 +161,19 @@ public abstract class AbstractSquidScreen<T extends Color> extends ScreenAdapter
 	}
 
 	/**
-	 * Ideally, you should always go through this method to create a
-	 * {@link SquidPanel}.
-	 * 
-	 * @return How this class builds {@link SquidPanel}.
+	 * @return Whether libgdx called {@link #dispose()} on {@code this}.
 	 */
-	public IPanelBuilder getPanelBuilder() {
-		return ipb;
+	public boolean isDisposed() {
+		return disposed;
+	}
+
+	@Override
+	public void resize(int width, int height) {
+		/* In some implementations, this make getNext()'s behavior change */
+		this.resized |= true;
+		this.sizeManager = sizeManager.changeScreenSize(width, height);
+		if (disposeAtResize())
+			dispose();
 	}
 
 	/**
@@ -180,14 +185,6 @@ public abstract class AbstractSquidScreen<T extends Color> extends ScreenAdapter
 	}
 
 	/**
-	 * @param desiredCellSize
-	 * @return A screen wide squid panel, margins-aware, and with its position set.
-	 */
-	protected final SquidPanel buildScreenWideSquidPanel(int desiredCellSize) {
-		return ipb.buildScreenWide(sizeManager.screenWidth, sizeManager.screenHeight, desiredCellSize, null);
-	}
-
-	/**
 	 * @return A screen wide squid panel, margins-aware, and with its position set.
 	 *         It uses the current cell size.
 	 */
@@ -195,6 +192,14 @@ public abstract class AbstractSquidScreen<T extends Color> extends ScreenAdapter
 		final SquidPanel result = buildSquidPanel(sizeManager.wCells, sizeManager.hCells);
 		result.setPosition(sizeManager.leftMargin, sizeManager.botMargin);
 		return result;
+	}
+
+	/**
+	 * @param desiredCellSize
+	 * @return A screen wide squid panel, margins-aware, and with its position set.
+	 */
+	protected final SquidPanel buildScreenWideSquidPanel(int desiredCellSize) {
+		return ipb.buildScreenWide(sizeManager.screenWidth, sizeManager.screenHeight, desiredCellSize, null);
 	}
 
 	/**
@@ -241,11 +246,6 @@ public abstract class AbstractSquidScreen<T extends Color> extends ScreenAdapter
 		return colorCenter.getBlack();
 	}
 
-	protected final void clearScreen() {
-		Gdx.gl.glClearColor(0, 0, 0, 1);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-	}
-
 	/**
 	 * A dumb container, to avoid having too many parameters to
 	 * {@link AbstractSquidScreen}'s constructor.
@@ -256,9 +256,9 @@ public abstract class AbstractSquidScreen<T extends Color> extends ScreenAdapter
 	 */
 	public static class SquidScreenInput<T> {
 
-		public final ScreenSizeManager ssm;
 		public final IColorCenter<T> icc;
 		public final IPanelBuilder ipb;
+		public final ScreenSizeManager ssm;
 
 		public SquidScreenInput(ScreenSizeManager ssm, IColorCenter<T> icc, IPanelBuilder ipb) {
 			this.ssm = ssm;

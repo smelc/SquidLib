@@ -186,7 +186,7 @@ public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 	 *            an IMarkup implementation
 	 * @return a String with markup inserted inside.
 	 */
-	String presentWithMarkup(IMarkup<T> markup);
+	String presentWithMarkup(IMarkup<? super T> markup);
 
 	/** @return The width of this string once when drawn with font */
 	public float width(BitmapFont font);
@@ -729,7 +729,7 @@ public interface IColoredString<T> extends Iterable<IColoredString.Bucket<T>> {
 		 * @return a String with markup inserted inside.
 		 */
 		@Override
-		public String presentWithMarkup(IMarkup<T> markup) {
+		public String presentWithMarkup(IMarkup<? super T> markup) {
 			final StringBuilder result = new StringBuilder();
 			boolean open = false;
 			for (Bucket<T> fragment : fragments) {

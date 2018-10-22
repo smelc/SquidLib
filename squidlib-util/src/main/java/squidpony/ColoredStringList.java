@@ -12,6 +12,8 @@ import squidpony.panel.IColoredString;
  * calls. It is particularly useful when feeding large pieces of text to classes
  * like TextPanel in the display module.
  * 
+ * TODO CH Deprecate me
+ * 
  * @author smelC
  */
 public class ColoredStringList<T> extends ArrayList<IColoredString<T>> {

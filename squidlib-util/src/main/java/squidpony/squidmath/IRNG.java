@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import squidpony.annotation.GwtIncompatible;
-
 /**
  * Interface of a RNG. It's a stripped down version of the original RNG class
  * from SquidLib It's an interface instead of a class, to be able to implement
@@ -165,21 +163,6 @@ public interface IRNG {
 	 * @return a 64-bit random long.
 	 */
 	public short nextShort(short bound);
-
-	/**
-	 * Shuffle an array using the Fisher-Yates algorithm and returns a shuffled
-	 * copy. Not GWT-compatible; use the overload that takes two arrays if you use
-	 * GWT. <br>
-	 * https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
-	 * 
-	 * @param elements
-	 *            an array of T; will not be modified
-	 * @param <T>
-	 *            can be any non-primitive type.
-	 * @return a shuffled copy of elements
-	 */
-	@GwtIncompatible
-	public <T> T[] shuffle(T[] elements);
 
 	/**
 	 * Shuffles an array in place using the Fisher-Yates algorithm. If you don't
