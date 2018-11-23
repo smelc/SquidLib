@@ -368,7 +368,7 @@ public class Coord implements Serializable {
 
 	/**
 	 * Precondition: {@code this} is {@link #isAdjacent(Coord) adjacent} to
-	 * {@code adjacent}.
+	 * {@code adjacent}. If not use {@link Direction#toGoTo(Coord, Coord)} instead.
 	 * 
 	 * @param adjacent
 	 *            A {@link Coord} that is {@link #isAdjacent(Coord) adjacent} to

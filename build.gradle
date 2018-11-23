@@ -12,21 +12,6 @@ repositories {
     jcenter()
 }
 
-project.ext.assetsDir = new File("assets");
-
-sourceSets {
-    main {
-        java {
-            srcDirs 'squidlib/src/main/java'
-            srcDirs 'squidlib-util/src/main/java'
-            srcDirs 'squidlib-util/src/main/resources'
-
-            // srcDirs 'squidlib-util/etc' <- No. Solely contains TilesetsGenerator
-	    // which isn't useful anymore.
-        }
-    }
-}
-
 // define 'gdxVersion' if not defined yet. This allows
 // a project depending on SquidLib (like: your game) to define
 // 'gdxVersion' itself, and yet be able to build SquidLib standalone too.

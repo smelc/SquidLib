@@ -165,6 +165,15 @@ public interface IRNG {
 	public short nextShort(short bound);
 
 	/**
+	 * @param chance
+	 * 			The chance of success (inclusive).
+	 * @param bound
+	 * 			The bound (inclusive), for example 100.
+	 * @return Whether rolling {@code chance} against {@code roll} passed
+	 */
+	public boolean roll(int chance, int bound);
+
+	/**
 	 * Shuffles an array in place using the Fisher-Yates algorithm. If you don't
 	 * want the array modified, use {@link #shuffle(Object[], Object[])}. Unlike
 	 * {@link #shuffle(Object[])}, this is GWT-compatible. <br>
