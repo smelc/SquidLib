@@ -93,6 +93,11 @@ public abstract class AbstractSquidScreen<T extends Color> extends ScreenAdapter
 		this.ipb = ssi.ipb;
 	}
 
+	/* Default implementation, feel free to override */
+	public Stage buildStage() {
+		return new Stage(new ScreenViewport());
+	}
+
 	public final void clearScreen() {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -222,11 +227,6 @@ public abstract class AbstractSquidScreen<T extends Color> extends ScreenAdapter
 	 */
 	protected final SquidPanel buildSquidPanel(int width, int height, int cellWidth, int cellHeight) {
 		return ipb.buildByCells(width, height, cellWidth, cellHeight, null);
-	}
-
-	/* Default implementation, feel free to override */
-	protected Stage buildStage() {
-		return new Stage(new ScreenViewport());
 	}
 
 	/**
