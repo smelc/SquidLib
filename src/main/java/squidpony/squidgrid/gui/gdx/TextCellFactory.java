@@ -238,7 +238,7 @@ public class TextCellFactory implements Disposable {
 	 */
 	public TextCellFactory initByFont() {
 		bmpFont.setFixedWidthGlyphs(fitting);
-		width = (int) bmpFont.getSpaceWidth();
+		width = (int) bmpFont.getSpaceXadvance();
 		height = (int) (bmpFont.getLineHeight());
 		descent = bmpFont.getDescent();
 
